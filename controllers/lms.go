@@ -42,10 +42,6 @@ func (r *OpenedxReconciler) lmsDeployment(lms *cachev1.Openedx) *appsv1.Deployme
 							Name:          "lms",
 						}},
 
-						Resources: []corev1.ResourceQuota{{
-							memory: "2Gi",
-						}},
-
 						VolumeMounts: []corev1.VolumeMount{
 							{
 								Name:      "settings-lms",

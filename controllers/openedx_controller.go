@@ -32,7 +32,7 @@ import (
 // OpenedxReconciler reconciles a Openedx object
 // comment
 type OpenedxReconciler struct {
-	client client.Client
+	Client client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
@@ -47,7 +47,7 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// Fetch the Openedx instance
 	instance := &cachev1.Openedx{}
-	err := r.client.Get(context.TODO(), req.NamespacedName, instance)
+	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
 
 	if err != nil {
 		if errors.IsNotFound(err) {
