@@ -18,7 +18,7 @@ func (r *OpenedxReconciler) ensureDeployment(request reconcile.Request,
 
 	// See if deployment already exists and create if it doesn't
 	found := &appsv1.Deployment{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
 		Name:      dep.Name,
 		Namespace: instance.Namespace,
 	}, found)
@@ -26,7 +26,7 @@ func (r *OpenedxReconciler) ensureDeployment(request reconcile.Request,
 
 		// Create the deployment
 		log.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
-		err = r.client.Create(context.TODO(), dep)
+		err = r.Client.Create(context.TODO(), dep)
 
 		if err != nil {
 			// Deployment failed
