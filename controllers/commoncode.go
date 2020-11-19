@@ -45,12 +45,12 @@ func (r *OpenedxReconciler) ensureDeployment(request reconcile.Request,
 	return nil, nil
 }
 
-func labels(instance *cachev1.Openedx, tier string) map[string]string {
+func labels(instance *cachev1.Openedx, app string) map[string]string {
 	return map[string]string{
-		"app":        "LMS",
+		"app":        app,
 		"instance":   instance.Name,
 		"managed-by": "tutor",
-		"name":       "lms",
+		"name":       app,
 		"part-of":    "openedx",
 		"version":    "10.4.0",
 	}
