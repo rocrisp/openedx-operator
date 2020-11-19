@@ -1,0 +1,7 @@
+apiVersion: cache.operatortrain.me/v1
+kind: Openedx
+metadata:
+  name: openedx-sample
+spec:
+  # Add fields here
+  foo: bar

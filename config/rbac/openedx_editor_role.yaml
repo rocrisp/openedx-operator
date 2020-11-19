@@ -1,0 +1,24 @@
+# permissions for end users to edit openedxes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: openedx-editor-role
+rules:
+- apiGroups:
+  - cache.operatortrain.me
+  resources:
+  - openedxes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cache.operatortrain.me
+  resources:
+  - openedxes/status
+  verbs:
+  - get

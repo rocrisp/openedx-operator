@@ -1,0 +1,11 @@
+domain: operatortrain.me
+layout: go.kubebuilder.io/v2
+projectName: openedx-operator
+repo: github.com/rocrisp/openedx-operator
+resources:
+- group: cache
+  kind: Openedx
+  version: v1
+version: 3-alpha
+plugins:
+  go.sdk.operatorframework.io/v2-alpha: {}
