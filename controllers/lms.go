@@ -12,7 +12,7 @@ const lmsImage = "docker.io/overhangio/openedx:10.4.0"
 const lmsPort = 8000
 
 func lmsDeploymentName(lms *cachev1.Openedx) string {
-	return lms.Name + "-deployment"
+	return lms.Name + "-lms"
 }
 
 func (r *OpenedxReconciler) lmsDeployment(lms *cachev1.Openedx) *appsv1.Deployment {

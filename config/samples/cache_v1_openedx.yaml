@@ -1,7 +1,7 @@
 apiVersion: cache.operatortrain.me/v1
 kind: Openedx
 metadata:
-  name: openedx-sample
+  name: openedx
 spec:
   # Add fields here
-  size: 2
+  size: 1

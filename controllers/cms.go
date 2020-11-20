@@ -12,7 +12,7 @@ const cmsImage = "docker.io/overhangio/openedx:10.4.0"
 const cmsPort = 8000
 
 func cmsDeploymentName(cms *cachev1.Openedx) string {
-	return cms.Name + "-deployment"
+	return cms.Name + "-cms"
 }
 
 func (r *OpenedxReconciler) cmsDeployment(cms *cachev1.Openedx) *appsv1.Deployment {
@@ -21,7 +21,7 @@ func (r *OpenedxReconciler) cmsDeployment(cms *cachev1.Openedx) *appsv1.Deployme
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      lmsDeploymentName(cms),
+			Name:      cmsDeploymentName(cms),
 			Namespace: cms.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -100,6 +100,6 @@ func (r *OpenedxReconciler) cmsDeployment(cms *cachev1.Openedx) *appsv1.Deployme
 		},
 	}
 
-	controllerutil.SetControllerReference(lms, dep, r.Scheme)
+	controllerutil.SetControllerReference(cms, dep, r.Scheme)
 	return dep
 }

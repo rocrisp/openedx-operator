@@ -62,12 +62,26 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	var result *reconcile.Result
 
-	// == Demo  ==========
+	// == LMS  ==========
 	result, err = r.ensureDeployment(req, instance, r.lmsDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
 
+	// == CMS  ==========
+	result, err = r.ensureDeployment(req, instance, r.cmsDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == MYSQL ========
+	result, err = r.ensureDeployment(req, instance, r.mysqlDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == Finish ==========
+	// Everything went fine, don't requeue
 	return ctrl.Result{}, nil
 }
 

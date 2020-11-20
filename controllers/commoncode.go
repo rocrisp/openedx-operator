@@ -47,9 +47,9 @@ func (r *OpenedxReconciler) ensureDeployment(request reconcile.Request,
 
 func labels(instance *cachev1.Openedx, app string) map[string]string {
 	return map[string]string{
-		"app":        app,
+		"app":        "openedx",
 		"instance":   instance.Name,
-		"managed-by": "tutor",
+		"managed-by": "rose",
 		"name":       app,
 		"part-of":    "openedx",
 		"version":    "10.4.0",
