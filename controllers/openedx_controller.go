@@ -110,6 +110,12 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	// == FORUM ========
+	result, err = r.ensureDeployment(req, instance, r.forumDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
 	// == Finish ==========
 	// Everything went fine, don't requeue
 	return ctrl.Result{}, nil
