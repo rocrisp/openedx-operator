@@ -80,6 +80,24 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	// == MONODB ========
+	result, err = r.ensureDeployment(req, instance, r.mongodbDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == NGINX ========
+	result, err = r.ensureDeployment(req, instance, r.nginxDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == MEMCACHED ========
+	result, err = r.ensureDeployment(req, instance, r.memcachedDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
 	// == Finish ==========
 	// Everything went fine, don't requeue
 	return ctrl.Result{}, nil
