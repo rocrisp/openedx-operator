@@ -98,6 +98,18 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	// == RABBITMQ ========
+	result, err = r.ensureDeployment(req, instance, r.rabbitmqDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == SMTP ========
+	result, err = r.ensureDeployment(req, instance, r.smtpDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
 	// == Finish ==========
 	// Everything went fine, don't requeue
 	return ctrl.Result{}, nil

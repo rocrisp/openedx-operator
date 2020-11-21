@@ -25,7 +25,7 @@ func (r *OpenedxReconciler) ensureDeployment(request reconcile.Request,
 	if err != nil && errors.IsNotFound(err) {
 
 		// Create the deployment
-		log.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+		log.Info("Creating a new Deployment : ", "Deployment Namespace : ", dep.Namespace, " Deployment Name : ", dep.Name)
 		err = r.Client.Create(context.TODO(), dep)
 
 		if err != nil {
