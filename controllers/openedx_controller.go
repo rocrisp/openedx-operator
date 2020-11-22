@@ -68,8 +68,20 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	// == LMS WORKER ==========
+	result, err = r.ensureDeployment(req, instance, r.lmsworkerDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
 	// == CMS  ==========
 	result, err = r.ensureDeployment(req, instance, r.cmsDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == CMS WORKER ==========
+	result, err = r.ensureDeployment(req, instance, r.cmsworkerDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
@@ -106,6 +118,12 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// == SMTP ========
 	result, err = r.ensureDeployment(req, instance, r.smtpDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == ELASTICSEARCH ========
+	result, err = r.ensureDeployment(req, instance, r.elasticsearchDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
