@@ -6,6 +6,7 @@ import (
 	"github.com/prometheus/common/log"
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -54,4 +55,68 @@ func labels(instance *cachev1.Openedx, app string) map[string]string {
 		"part-of":    "openedx",
 		"version":    "10.4.0",
 	}
+}
+
+func (r *OpenedxReconciler) ensureService(request reconcile.Request,
+	instance *cachev1.Openedx,
+	s *corev1.Service,
+) (*reconcile.Result, error) {
+	found := &corev1.Service{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      s.Name,
+		Namespace: instance.Namespace,
+	}, found)
+	if err != nil && errors.IsNotFound(err) {
+
+		// Create the service
+		log.Info("Creating a new Service", "Service.Namespace", s.Namespace, "Service.Name", s.Name)
+		err = r.Client.Create(context.TODO(), s)
+
+		if err != nil {
+			// Creation failed
+			log.Error(err, "Failed to create new Service", "Service.Namespace", s.Namespace, "Service.Name", s.Name)
+			return &reconcile.Result{}, err
+		} else {
+			// Creation was successful
+			return nil, nil
+		}
+	} else if err != nil {
+		// Error that isn't due to the service not existing
+		log.Error(err, "Failed to get Service")
+		return &reconcile.Result{}, err
+	}
+
+	return nil, nil
+}
+
+func (r *OpenedxReconciler) ensureConfig(request reconcile.Request,
+	instance *cachev1.Openedx,
+	s *corev1.ConfigMap,
+) (*reconcile.Result, error) {
+	found := &corev1.ConfigMap{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      s.Name,
+		Namespace: instance.Namespace,
+	}, found)
+	if err != nil && errors.IsNotFound(err) {
+
+		// Create the ConfigMap
+		log.Info("Creating a new ConfigMap", "ConfigMap.Namespace", s.Namespace, "ConfigMap.Name", s.Name)
+		err = r.Client.Create(context.TODO(), s)
+
+		if err != nil {
+			// Creation failed
+			log.Error(err, "Failed to create new Service", "Service.Namespace", s.Namespace, "Service.Name", s.Name)
+			return &reconcile.Result{}, err
+		} else {
+			// Creation was successful
+			return nil, nil
+		}
+	} else if err != nil {
+		// Error that isn't due to the service not existing
+		log.Error(err, "Failed to get Service")
+		return &reconcile.Result{}, err
+	}
+
+	return nil, nil
 }
