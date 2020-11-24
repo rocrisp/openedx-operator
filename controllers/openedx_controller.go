@@ -20,14 +20,23 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
+
+// blank assignment to verify that Openedx implements reconcile.Reconciler
+var _ reconcile.Reconciler = &OpenedxReconciler{}
 
 // OpenedxReconciler reconciles a Openedx object
 // comment
@@ -35,6 +44,63 @@ type OpenedxReconciler struct {
 	Client client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
+}
+
+var log = logf.Log.WithName("controller_openedx")
+
+// Add creates a new Openedx Controller and adds it to the Manager. The Manager will set fields on the Controller
+// and Start it when the Manager is Started.
+func Add(mgr manager.Manager) error {
+	return add(mgr, newReconciler(mgr))
+}
+
+// newReconciler returns a new reconcile.Reconciler
+func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+	return &OpenedxReconciler{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+}
+
+// add adds a new Controller to mgr with r as the reconcile.Reconciler
+func add(mgr manager.Manager, r reconcile.Reconciler) error {
+	// Create a new controller
+	c, err := controller.New("openedx-controller", mgr, controller.Options{Reconciler: r})
+	if err != nil {
+		return err
+	}
+
+	// Watch for changes to primary resource Cakephp
+	err = c.Watch(&source.Kind{Type: &cachev1.Openedx{}, &handler.EnqueueRequestForObject{})
+	if err != nil {
+		return err
+	}
+
+	// Watch for changes to Deployment
+	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &cachev1.Openedx{},
+	})
+	if err != nil {
+		return err
+	}
+
+	// Watch for changes to Service
+	err = c.Watch(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &cachev1.Openedx{},
+	})
+	if err != nil {
+		return err
+	}
+
+	// Watch for changes to Route
+	err = c.Watch(&source.Kind{Type: &routev1.Route{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &cachev1.Openedx{},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // +kubebuilder:rbac:groups=cache.operatortrain.me,resources=openedxes,verbs=get;list;watch;create;update;patch;delete
@@ -137,12 +203,4 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// == Finish ==========
 	// Everything went fine, don't requeue
 	return ctrl.Result{}, nil
-}
-
-// comment
-
-func (r *OpenedxReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&cachev1.Openedx{}).
-		Complete(r)
 }
