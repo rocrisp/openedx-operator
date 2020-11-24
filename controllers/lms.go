@@ -20,10 +20,6 @@ func lmsServiceName(lms *cachev1.Openedx) string {
 	return lms.Name + "-lms-service"
 }
 
-func lmsConfigmapName(lms *cachev1.Openedx) string {
-	return lms.Name + "-Configmap"
-}
-
 func (r *OpenedxReconciler) lmsDeployment(lms *cachev1.Openedx) *appsv1.Deployment {
 	labels := labels(lms, "lms")
 	size := lms.Spec.Size
@@ -106,13 +102,13 @@ func (r *OpenedxReconciler) lmsDeployment(lms *cachev1.Openedx) *appsv1.Deployme
 	return dep
 }
 
-func (r *OpenedxReconciler) lmsService(lms *cachev1.Openedx) *corev1.Service {
-	labels := labels(lms, "lms")
+func (r *OpenedxReconciler) lmsService(lmsService *cachev1.Openedx) *corev1.Service {
+	labels := labels(lmsService, "lmsService")
 
 	s := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      lmsServiceName(lms),
-			Namespace: lms.Namespace,
+			Name:      lmsServiceName(lmsService),
+			Namespace: lmsService.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
@@ -125,29 +121,6 @@ func (r *OpenedxReconciler) lmsService(lms *cachev1.Openedx) *corev1.Service {
 		},
 	}
 
-	controllerutil.SetControllerReference(lms, s, r.Scheme)
-	return s
-}
-
-func (r *OpenedxReconciler) lmsConfigmap(lms *cachev1.Openedx) *corev1.Service {
-	labels := labels(lms, "lms")
-
-	s := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      lmsConfigmapName(lms),
-			Namespace: lms.Namespace,
-		},
-		Spec: corev1.ServiceSpec{
-			Selector: labels,
-			Ports: []corev1.ServicePort{{
-				Protocol:   corev1.ProtocolTCP,
-				Port:       5000,
-				TargetPort: intstr.FromInt(8080),
-				NodePort:   0,
-			}},
-		},
-	}
-
-	controllerutil.SetControllerReference(lms, s, r.Scheme)
+	controllerutil.SetControllerReference(lmsService, s, r.Scheme)
 	return s
 }

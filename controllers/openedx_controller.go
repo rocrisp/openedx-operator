@@ -21,6 +21,7 @@ import (
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -32,7 +33,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 // blank assignment to verify that Openedx implements reconcile.Reconciler
@@ -46,8 +46,6 @@ type OpenedxReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-var log = logf.Log.WithName("controller_openedx")
-
 // Add creates a new Openedx Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -56,7 +54,7 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &OpenedxReconciler{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &OpenedxReconciler{Client: mgr.GetClient(), Scheme: mgr.GetScheme()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -67,8 +65,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to primary resource Cakephp
-	err = c.Watch(&source.Kind{Type: &cachev1.Openedx{}, &handler.EnqueueRequestForObject{})
+	// Watch for changes to primary resource Openedx
+	err = c.Watch(&source.Kind{Type: &cachev1.Openedx{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -91,8 +89,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to Route
-	err = c.Watch(&source.Kind{Type: &routev1.Route{}}, &handler.EnqueueRequestForOwner{
+	// Watch for change to pods
+	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &cachev1.Openedx{},
 	})
@@ -129,18 +127,13 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	var result *reconcile.Result
 
 	// == LMS  ==========
-	
-	result, err = r.ensureConfigmap(request, instance, r.lmsConfigmap(instance))
-	if result != nil {
-		return *result, err
-	}
-	
+
 	result, err = r.ensureDeployment(req, instance, r.lmsDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureService(request, instance, r.lmsService(instance))
+	result, err = r.ensureService(req, instance, r.lmsService(instance))
 	if result != nil {
 		return *result, err
 	}
@@ -214,4 +207,10 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// == Finish ==========
 	// Everything went fine, don't requeue
 	return ctrl.Result{}, nil
+}
+
+func (r *OpenedxReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&cachev1.Openedx{}).
+		Complete(r)
 }
