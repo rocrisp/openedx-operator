@@ -209,8 +209,48 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	return ctrl.Result{}, nil
 }
 
+// add comment
+
 func (r *OpenedxReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&cachev1.Openedx{}).
-		Complete(r)
+
+	// Create a new controller
+	c, err := controller.New("openedx-controller", mgr, controller.Options{Reconciler: r})
+	if err != nil {
+		return err
+	}
+
+	// Watch for changes to primary resource Openedx
+	err = c.Watch(&source.Kind{Type: &cachev1.Openedx{}}, &handler.EnqueueRequestForObject{})
+	if err != nil {
+		return err
+	}
+
+	// Watch for changes to Deployment
+	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &cachev1.Openedx{},
+	})
+	if err != nil {
+		return err
+	}
+
+	// Watch for changes to Service
+	err = c.Watch(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &cachev1.Openedx{},
+	})
+	if err != nil {
+		return err
+	}
+
+	// Watch for change to pods
+	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &cachev1.Openedx{},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
