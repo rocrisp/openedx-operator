@@ -5,6 +5,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -13,6 +14,14 @@ const lmsPort = 8000
 
 func lmsDeploymentName(lms *cachev1.Openedx) string {
 	return lms.Name + "-lms"
+}
+
+func lmsServiceName(lms *cachev1.Openedx) string {
+	return lms.Name + "-lms-service"
+}
+
+func lmsConfigmapName(lms *cachev1.Openedx) string {
+	return lms.Name + "-Configmap"
 }
 
 func (r *OpenedxReconciler) lmsDeployment(lms *cachev1.Openedx) *appsv1.Deployment {
@@ -95,4 +104,50 @@ func (r *OpenedxReconciler) lmsDeployment(lms *cachev1.Openedx) *appsv1.Deployme
 
 	controllerutil.SetControllerReference(lms, dep, r.Scheme)
 	return dep
+}
+
+func (r *OpenedxReconciler) lmsService(lms *cachev1.Openedx) *corev1.Service {
+	labels := labels(lms, "lms")
+
+	s := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      lmsServiceName(lms),
+			Namespace: lms.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: labels,
+			Ports: []corev1.ServicePort{{
+				Protocol:   corev1.ProtocolTCP,
+				Port:       5000,
+				TargetPort: intstr.FromInt(8080),
+				NodePort:   0,
+			}},
+		},
+	}
+
+	controllerutil.SetControllerReference(lms, s, r.Scheme)
+	return s
+}
+
+func (r *OpenedxReconciler) lmsConfigmap(lms *cachev1.Openedx) *corev1.Service {
+	labels := labels(lms, "lms")
+
+	s := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      lmsConfigmapName(lms),
+			Namespace: lms.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: labels,
+			Ports: []corev1.ServicePort{{
+				Protocol:   corev1.ProtocolTCP,
+				Port:       5000,
+				TargetPort: intstr.FromInt(8080),
+				NodePort:   0,
+			}},
+		},
+	}
+
+	controllerutil.SetControllerReference(lms, s, r.Scheme)
+	return s
 }

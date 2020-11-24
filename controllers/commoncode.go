@@ -89,7 +89,7 @@ func (r *OpenedxReconciler) ensureService(request reconcile.Request,
 	return nil, nil
 }
 
-func (r *OpenedxReconciler) ensureConfig(request reconcile.Request,
+func (r *OpenedxReconciler) ensureConfigmap(request reconcile.Request,
 	instance *cachev1.Openedx,
 	s *corev1.ConfigMap,
 ) (*reconcile.Result, error) {
