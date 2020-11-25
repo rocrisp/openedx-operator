@@ -5,6 +5,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -53,4 +54,25 @@ func (r *OpenedxReconciler) smtpDeployment(instance *cachev1.Openedx) *appsv1.De
 
 	controllerutil.SetControllerReference(instance, deployment, r.Scheme)
 	return deployment
+}
+
+func (r *OpenedxReconciler) smtpService(instance *cachev1.Openedx) *corev1.Service {
+	labels := labels(instance, "smtp")
+
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      rabbitmqServiceName(),
+			Namespace: instance.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: labels,
+			Ports: []corev1.ServicePort{{
+				Port:       25,
+				TargetPort: intstr.FromInt(smtpPort),
+			}},
+		},
+	}
+
+	controllerutil.SetControllerReference(instance, service, r.Scheme)
+	return service
 }

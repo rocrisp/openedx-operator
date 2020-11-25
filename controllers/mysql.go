@@ -48,20 +48,6 @@ func (r *OpenedxReconciler) mysqlDeployment(instance *cachev1.Openedx) *appsv1.D
 	labels := labels(instance, "mysql")
 	size := instance.Spec.Size
 
-	// userSecret := &corev1.EnvVarSource{
-	// 	SecretKeyRef: &corev1.SecretKeySelector{
-	// 		LocalObjectReference: corev1.LocalObjectReference{Name: mysqlAuthName()},
-	// 		Key:                  "username",
-	// 	},
-	// }
-
-	// passwordSecret := &corev1.EnvVarSource{
-	// 	SecretKeyRef: &corev1.SecretKeySelector{
-	// 		LocalObjectReference: corev1.LocalObjectReference{Name: mysqlAuthName()},
-	// 		Key:                  "password",
-	// 	},
-	// }
-
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      mysqlDeploymentName(instance),

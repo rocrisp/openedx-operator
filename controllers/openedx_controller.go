@@ -134,16 +134,16 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if result != nil {
 		return *result, err
 	}
-	mongodbRunning := r.isMongodbUp(instance)
+	// mongodbRunning := r.isMongodbUp(instance)
 
-	if !mongodbRunning {
-		// If nginx isn't running yet, requeue the reconcile
-		// to run again after a delay
-		delay := time.Second * time.Duration(5)
+	// if !mongodbRunning {
+	// 	// If nginx isn't running yet, requeue the reconcile
+	// 	// to run again after a delay
+	// 	delay := time.Second * time.Duration(5)
 
-		log.Info(fmt.Sprintf("MONGODB isn't running, waiting for %s", delay))
-		return reconcile.Result{RequeueAfter: delay}, nil
-	}
+	// 	log.Info(fmt.Sprintf("MONGODB isn't running, waiting for %s", delay))
+	// 	return reconcile.Result{RequeueAfter: delay}, nil
+	// }
 
 	// == NGINX ========
 	result, err = r.ensureDeployment(req, instance, r.nginxDeployment(instance))
@@ -155,16 +155,16 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if result != nil {
 		return *result, err
 	}
-	nginxRunning := r.isNginxUp(instance)
+	// nginxRunning := r.isNginxUp(instance)
 
-	if !nginxRunning {
-		// If nginx isn't running yet, requeue the reconcile
-		// to run again after a delay
-		delay := time.Second * time.Duration(5)
+	// if !nginxRunning {
+	// 	// If nginx isn't running yet, requeue the reconcile
+	// 	// to run again after a delay
+	// 	delay := time.Second * time.Duration(5)
 
-		log.Info(fmt.Sprintf("NGINX isn't running, waiting for %s", delay))
-		return reconcile.Result{RequeueAfter: delay}, nil
-	}
+	// 	log.Info(fmt.Sprintf("NGINX isn't running, waiting for %s", delay))
+	// 	return reconcile.Result{RequeueAfter: delay}, nil
+	// }
 
 	// == MEMCACHED ========
 	result, err = r.ensureDeployment(req, instance, r.memcachedDeployment(instance))
@@ -172,8 +172,28 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	result, err = r.ensureService(req, instance, r.memcachedService(instance))
+	if result != nil {
+		return *result, err
+	}
+	// memcachedRunning := r.isMemcachedUp(instance)
+
+	// if !memcachedRunning {
+	// 	// If nginx isn't running yet, requeue the reconcile
+	// 	// to run again after a delay
+	// 	delay := time.Second * time.Duration(5)
+
+	// 	log.Info(fmt.Sprintf("NGINX isn't running, waiting for %s", delay))
+	// 	return reconcile.Result{RequeueAfter: delay}, nil
+	// }
+
 	// == RABBITMQ ========
 	result, err = r.ensureDeployment(req, instance, r.rabbitmqDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureService(req, instance, r.rabbitmqService(instance))
 	if result != nil {
 		return *result, err
 	}
@@ -184,14 +204,29 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	result, err = r.ensureService(req, instance, r.smtpService(instance))
+	if result != nil {
+		return *result, err
+	}
+
 	// == ELASTICSEARCH ========
 	result, err = r.ensureDeployment(req, instance, r.elasticsearchDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
 
+	result, err = r.ensureService(req, instance, r.elasticsearchService(instance))
+	if result != nil {
+		return *result, err
+	}
+
 	// == FORUM ========
 	result, err = r.ensureDeployment(req, instance, r.forumDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureService(req, instance, r.forumService(instance))
 	if result != nil {
 		return *result, err
 	}

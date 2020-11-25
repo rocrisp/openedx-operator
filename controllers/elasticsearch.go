@@ -48,20 +48,6 @@ func (r *OpenedxReconciler) elasticsearchDeployment(instance *cachev1.Openedx) *
 	labels := labels(instance, "elasticsearch")
 	size := instance.Spec.Size
 
-	// userSecret := &corev1.EnvVarSource{
-	// 	SecretKeyRef: &corev1.SecretKeySelector{
-	// 		LocalObjectReference: corev1.LocalObjectReference{Name: elasticsearchAuthName()},
-	// 		Key:                  "username",
-	// 	},
-	// }
-
-	// passwordSecret := &corev1.EnvVarSource{
-	// 	SecretKeyRef: &corev1.SecretKeySelector{
-	// 		LocalObjectReference: corev1.LocalObjectReference{Name: elasticsearchAuthName()},
-	// 		Key:                  "password",
-	// 	},
-	// }
-
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      elasticsearchDeploymentName(instance),
@@ -131,7 +117,7 @@ func (r *OpenedxReconciler) elasticsearchService(instance *cachev1.Openedx) *cor
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
 			Ports: []corev1.ServicePort{{
-				Port:       3306,
+				Port:       9200,
 				TargetPort: intstr.FromInt(sqlPort),
 			}},
 		},

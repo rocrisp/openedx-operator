@@ -16,12 +16,12 @@ import (
 const forumPort = 4567
 const forumImage = "docker.io/overhangio/openedx-forum:10.4.0"
 
-func forumDeploymentName() string {
-	return "forum"
+func forumDeploymentName(instance *cachev1.Openedx) string {
+	return instance.Name + "-forum"
 }
 
-func forumServiceName() string {
-	return "forum"
+func forumServiceName(instance *cachev1.Openedx) string {
+	return instance.Name + "-forum-service"
 }
 
 func forumAuthName() string {
@@ -64,7 +64,7 @@ func (r *OpenedxReconciler) forumDeployment(d *cachev1.Openedx) *appsv1.Deployme
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      forumDeploymentName(),
+			Name:      forumDeploymentName(d),
 			Namespace: d.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -113,25 +113,25 @@ func (r *OpenedxReconciler) forumDeployment(d *cachev1.Openedx) *appsv1.Deployme
 	return dep
 }
 
-func (r *OpenedxReconciler) forumService(d *cachev1.Openedx) *corev1.Service {
-	labels := labels(d, "forum")
+func (r *OpenedxReconciler) forumService(instance *cachev1.Openedx) *corev1.Service {
+	labels := labels(instance, "forum")
 
-	s := &corev1.Service{
+	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      forumServiceName(),
-			Namespace: d.Namespace,
+			Name:      forumServiceName(instance),
+			Namespace: instance.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
 			Ports: []corev1.ServicePort{{
-				Port:       3306,
-				TargetPort: intstr.FromInt(sqlPort),
+				Port:       4567,
+				TargetPort: intstr.FromInt(forumPort),
 			}},
 		},
 	}
 
-	controllerutil.SetControllerReference(d, s, r.Scheme)
-	return s
+	controllerutil.SetControllerReference(instance, service, r.Scheme)
+	return service
 }
 
 // Returns whether or not the forum deployment is running
@@ -139,7 +139,7 @@ func (r *OpenedxReconciler) isforumUp(d *cachev1.Openedx) bool {
 	deployment := &appsv1.Deployment{}
 
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
-		Name:      forumDeploymentName(),
+		Name:      forumDeploymentName(d),
 		Namespace: d.Namespace,
 	}, deployment)
 

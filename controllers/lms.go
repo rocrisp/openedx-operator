@@ -103,7 +103,7 @@ func (r *OpenedxReconciler) lmsDeployment(lms *cachev1.Openedx) *appsv1.Deployme
 }
 
 func (r *OpenedxReconciler) lmsService(lmsService *cachev1.Openedx) *corev1.Service {
-	labels := labels(lmsService, "lmsService")
+	labels := labels(lmsService, "lms")
 
 	s := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{

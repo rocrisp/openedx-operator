@@ -87,10 +87,10 @@ func (r *OpenedxReconciler) ensureService(request reconcile.Request,
 
 func labels(instance *cachev1.Openedx, app string) map[string]string {
 	return map[string]string{
-		"app":        "openedx",
+		"app":        "OpenedX",
 		"instance":   instance.Name,
 		"managed-by": "rose",
-		"name":       app,
+		"tier":       app,
 		"part-of":    "openedx",
 		"version":    "10.4.0",
 	}

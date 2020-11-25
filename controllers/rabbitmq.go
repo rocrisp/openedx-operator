@@ -72,13 +72,13 @@ func (r *OpenedxReconciler) rabbitmqDeployment(d *cachev1.Openedx) *appsv1.Deplo
 	return dep
 }
 
-func (r *OpenedxReconciler) rabbitmqService(d *cachev1.Openedx) *corev1.Service {
-	labels := labels(d, "rabbitmq")
+func (r *OpenedxReconciler) rabbitmqService(instance *cachev1.Openedx) *corev1.Service {
+	labels := labels(instance, "rabbitmq")
 
-	s := &corev1.Service{
+	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      rabbitmqServiceName(),
-			Namespace: d.Namespace,
+			Namespace: instance.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
@@ -89,8 +89,8 @@ func (r *OpenedxReconciler) rabbitmqService(d *cachev1.Openedx) *corev1.Service 
 		},
 	}
 
-	controllerutil.SetControllerReference(d, s, r.Scheme)
-	return s
+	controllerutil.SetControllerReference(instance, service, r.Scheme)
+	return service
 }
 
 // Returns whether or not the rabbitmq deployment is running
