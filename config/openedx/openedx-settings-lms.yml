@@ -6,8 +6,8 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    instance: openedx
-    managed-by: tutor
+    app.kubernetes.io/instance: openedx
+    app.kubernetes.io/managed-by: tutor
     app.kubernetes.io/part-of: openedx
     app.kubernetes.io/version: 10.4.0
   name: openedx-settings-lms
