@@ -16,12 +16,12 @@ import (
 const elasticsearchPort = 9200
 const elasticsearchImage = "docker.io/elasticsearch:1.5.2"
 
-func elasticsearchDeploymentName() string {
-	return "elasticsearch"
+func elasticsearchDeploymentName(elasticsearch *cachev1.Openedx) string {
+	return elasticsearch.Name + "-elasticsearch"
 }
 
-func elasticsearchServiceName() string {
-	return "elasticsearch"
+func elasticsearchServiceName(elasticsearch *cachev1.Openedx) string {
+	return elasticsearch.Name + "-elasticsearch-service"
 }
 
 func elasticsearchAuthName() string {
@@ -44,9 +44,9 @@ func (r *OpenedxReconciler) elasticsearchAuthSecret(d *cachev1.Openedx) *corev1.
 	return secret
 }
 
-func (r *OpenedxReconciler) elasticsearchDeployment(d *cachev1.Openedx) *appsv1.Deployment {
-	labels := labels(d, "elasticsearch")
-	size := d.Spec.Size
+func (r *OpenedxReconciler) elasticsearchDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
+	labels := labels(instance, "elasticsearch")
+	size := instance.Spec.Size
 
 	// userSecret := &corev1.EnvVarSource{
 	// 	SecretKeyRef: &corev1.SecretKeySelector{
@@ -62,10 +62,10 @@ func (r *OpenedxReconciler) elasticsearchDeployment(d *cachev1.Openedx) *appsv1.
 	// 	},
 	// }
 
-	dep := &appsv1.Deployment{
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      elasticsearchDeploymentName(),
-			Namespace: d.Namespace,
+			Name:      elasticsearchDeploymentName(instance),
+			Namespace: instance.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,
@@ -116,17 +116,17 @@ func (r *OpenedxReconciler) elasticsearchDeployment(d *cachev1.Openedx) *appsv1.
 		},
 	}
 
-	controllerutil.SetControllerReference(d, dep, r.Scheme)
-	return dep
+	controllerutil.SetControllerReference(instance, deployment, r.Scheme)
+	return deployment
 }
 
-func (r *OpenedxReconciler) elasticsearchService(d *cachev1.Openedx) *corev1.Service {
-	labels := labels(d, "elasticsearch")
+func (r *OpenedxReconciler) elasticsearchService(instance *cachev1.Openedx) *corev1.Service {
+	labels := labels(instance, "elasticsearch")
 
-	s := &corev1.Service{
+	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      elasticsearchServiceName(),
-			Namespace: d.Namespace,
+			Name:      elasticsearchServiceName(instance),
+			Namespace: instance.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
@@ -137,17 +137,18 @@ func (r *OpenedxReconciler) elasticsearchService(d *cachev1.Openedx) *corev1.Ser
 		},
 	}
 
-	controllerutil.SetControllerReference(d, s, r.Scheme)
-	return s
+	controllerutil.SetControllerReference(instance, service, r.Scheme)
+	return service
 }
 
 // Returns whether or not the elasticsearch deployment is running
-func (r *OpenedxReconciler) iselasticsearchUp(d *cachev1.Openedx) bool {
+func (r *OpenedxReconciler) iselasticsearchUp(instance *cachev1.Openedx) bool {
+
 	deployment := &appsv1.Deployment{}
 
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
-		Name:      elasticsearchDeploymentName(),
-		Namespace: d.Namespace,
+		Name:      elasticsearchDeploymentName(instance),
+		Namespace: instance.Namespace,
 	}, deployment)
 
 	if err != nil {

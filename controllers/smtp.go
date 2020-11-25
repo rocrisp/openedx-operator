@@ -11,21 +11,21 @@ import (
 const smtpPort = 25
 const smtpImage = "docker.io/namshi/smtp:latest"
 
-func smtpDeploymentName() string {
-	return "smtp"
+func smtpDeploymentName(instance *cachev1.Openedx) string {
+	return instance.Name + "-smtp"
 }
 
-func smtpServiceName() string {
-	return "smtp"
+func smtpServiceName(instance *cachev1.Openedx) string {
+	return instance.Name + "-smtp-service"
 }
 
 func (r *OpenedxReconciler) smtpDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
 	labels := labels(instance, "smtp")
 	size := instance.Spec.Size
 
-	dep := &appsv1.Deployment{
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      smtpDeploymentName(),
+			Name:      smtpDeploymentName(instance),
 			Namespace: instance.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -51,6 +51,6 @@ func (r *OpenedxReconciler) smtpDeployment(instance *cachev1.Openedx) *appsv1.De
 		},
 	}
 
-	controllerutil.SetControllerReference(instance, dep, r.Scheme)
-	return dep
+	controllerutil.SetControllerReference(instance, deployment, r.Scheme)
+	return deployment
 }

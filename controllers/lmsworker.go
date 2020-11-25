@@ -10,6 +10,7 @@ import (
 
 const lmsworkerImage = "docker.io/overhangio/openedx:10.4.0"
 const lmsworkerPort = 8000
+const lmsworkerPod = "lmsworker"
 
 func lmsworkerDeploymentName(lmsworker *cachev1.Openedx) string {
 	return lmsworker.Name + "-lmsworker"

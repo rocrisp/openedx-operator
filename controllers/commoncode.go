@@ -26,12 +26,17 @@ func (r *OpenedxReconciler) ensureDeployment(request reconcile.Request,
 	if err != nil && errors.IsNotFound(err) {
 
 		// Create the deployment
-		log.Info("Creating a new Deployment : ", "Deployment Namespace : ", dep.Namespace, " Deployment Name : ", dep.Name)
+		log.Info("Creating a new Deployment")
+		log.Info("Deployment Namespace : ", dep.Namespace)
+		log.Info("Deployment Name : ", dep.Name)
+
 		err = r.Client.Create(context.TODO(), dep)
 
 		if err != nil {
 			// Deployment failed
-			log.Error(err, "Failed to create new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+			log.Info("Failed to create new Deployment")
+			log.Info("Deployment Namespace : ", dep.Namespace)
+			log.Info("Deployment Name : ", dep.Name)
 			return &reconcile.Result{}, err
 		} else {
 			// Deployment was successful
@@ -58,7 +63,9 @@ func (r *OpenedxReconciler) ensureService(request reconcile.Request,
 	if err != nil && errors.IsNotFound(err) {
 
 		// Create the service
-		log.Info("Creating a new Service", "Service.Namespace", s.Namespace, "Service.Name", s.Name)
+		log.Info("Creating a new Service")
+		log.Info("Service Namespace : ", s.Namespace)
+		log.Info("Service Name : ", s.Name)
 		err = r.Client.Create(context.TODO(), s)
 
 		if err != nil {

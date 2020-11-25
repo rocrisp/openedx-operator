@@ -1,28 +1,37 @@
 package controllers
 
 import (
+	"context"
+
+	"github.com/prometheus/common/log"
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const nginxImage = "docker.io/nginx:1.13"
-const nginxPort = 8000
+const nginxPort = 8080
 
-func nginxDeploymentName(nginx *cachev1.Openedx) string {
-	return nginx.Name + "-nginx"
+func nginxDeploymentName(instance *cachev1.Openedx) string {
+	return instance.Name + "-nginx"
 }
 
-func (r *OpenedxReconciler) nginxDeployment(nginx *cachev1.Openedx) *appsv1.Deployment {
-	labels := labels(nginx, "nginx")
-	size := nginx.Spec.Size
+func nginxServiceName(instance *cachev1.Openedx) string {
+	return instance.Name + "-nginx-service"
+}
 
-	dep := &appsv1.Deployment{
+func (r *OpenedxReconciler) nginxDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
+	labels := labels(instance, "nginx")
+	size := instance.Spec.Size
+
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      nginxDeploymentName(nginx),
-			Namespace: nginx.Namespace,
+			Name:      nginxDeploymentName(instance),
+			Namespace: instance.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,
@@ -71,6 +80,51 @@ func (r *OpenedxReconciler) nginxDeployment(nginx *cachev1.Openedx) *appsv1.Depl
 		},
 	}
 
-	controllerutil.SetControllerReference(nginx, dep, r.Scheme)
-	return dep
+	controllerutil.SetControllerReference(instance, deployment, r.Scheme)
+	return deployment
+}
+
+func (r *OpenedxReconciler) nginxService(instance *cachev1.Openedx) *corev1.Service {
+	labels := labels(instance, "nginx")
+
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      nginxServiceName(instance),
+			Namespace: instance.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: labels,
+			Ports: []corev1.ServicePort{{
+				Protocol:   corev1.ProtocolTCP,
+				Port:       80,
+				TargetPort: intstr.FromInt(nginxPort),
+				NodePort:   0,
+			}},
+		},
+	}
+
+	controllerutil.SetControllerReference(instance, service, r.Scheme)
+	return service
+}
+
+// Returns whether or not the MySQL deployment is running
+func (r *OpenedxReconciler) isNginxUp(instance *cachev1.Openedx) bool {
+
+	deployment := &appsv1.Deployment{}
+
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      nginxDeploymentName(instance),
+		Namespace: instance.Namespace,
+	}, deployment)
+
+	if err != nil {
+		log.Error(err, "Deployment nginx not found")
+		return false
+	}
+
+	if deployment.Status.ReadyReplicas == 1 {
+		return true
+	}
+
+	return false
 }

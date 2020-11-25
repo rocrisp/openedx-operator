@@ -13,25 +13,26 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+const sqlImage = "mysql:5.7"
 const sqlPort = 3306
 
-func mysqlDeploymentName() string {
-	return "mysql"
+func mysqlDeploymentName(instance *cachev1.Openedx) string {
+	return instance.Name + "-mysql"
 }
 
-func mysqlServiceName() string {
-	return "mysql"
+func mysqlServiceName(instance *cachev1.Openedx) string {
+	return instance.Name + "-mysql-service"
 }
 
 func mysqlAuthName() string {
 	return "mysql-auth"
 }
 
-func (r *OpenedxReconciler) mysqlAuthSecret(d *cachev1.Openedx) *corev1.Secret {
+func (r *OpenedxReconciler) mysqlAuthSecret(instance *cachev1.Openedx) *corev1.Secret {
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      mysqlAuthName(),
-			Namespace: d.Namespace,
+			Namespace: instance.Namespace,
 		},
 		Type: "Opaque",
 		StringData: map[string]string{
@@ -39,13 +40,13 @@ func (r *OpenedxReconciler) mysqlAuthSecret(d *cachev1.Openedx) *corev1.Secret {
 			"password": "cakephp",
 		},
 	}
-	controllerutil.SetControllerReference(d, secret, r.Scheme)
+	controllerutil.SetControllerReference(instance, secret, r.Scheme)
 	return secret
 }
 
-func (r *OpenedxReconciler) mysqlDeployment(d *cachev1.Openedx) *appsv1.Deployment {
-	labels := labels(d, "mysql")
-	size := d.Spec.Size
+func (r *OpenedxReconciler) mysqlDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
+	labels := labels(instance, "mysql")
+	size := instance.Spec.Size
 
 	// userSecret := &corev1.EnvVarSource{
 	// 	SecretKeyRef: &corev1.SecretKeySelector{
@@ -61,10 +62,10 @@ func (r *OpenedxReconciler) mysqlDeployment(d *cachev1.Openedx) *appsv1.Deployme
 	// 	},
 	// }
 
-	dep := &appsv1.Deployment{
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      mysqlDeploymentName(),
-			Namespace: d.Namespace,
+			Name:      mysqlDeploymentName(instance),
+			Namespace: instance.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,
@@ -83,7 +84,7 @@ func (r *OpenedxReconciler) mysqlDeployment(d *cachev1.Openedx) *appsv1.Deployme
 						},
 					}},
 					Containers: []corev1.Container{{
-						Image: "mysql:5.7",
+						Image: sqlImage,
 						Name:  "mysql-server",
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 3306,
@@ -105,17 +106,17 @@ func (r *OpenedxReconciler) mysqlDeployment(d *cachev1.Openedx) *appsv1.Deployme
 		},
 	}
 
-	controllerutil.SetControllerReference(d, dep, r.Scheme)
-	return dep
+	controllerutil.SetControllerReference(instance, deployment, r.Scheme)
+	return deployment
 }
 
-func (r *OpenedxReconciler) mysqlService(d *cachev1.Openedx) *corev1.Service {
-	labels := labels(d, "mysql")
+func (r *OpenedxReconciler) mysqlService(instance *cachev1.Openedx) *corev1.Service {
+	labels := labels(instance, "mysql")
 
-	s := &corev1.Service{
+	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      mysqlServiceName(),
-			Namespace: d.Namespace,
+			Name:      mysqlServiceName(instance),
+			Namespace: instance.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
@@ -126,17 +127,17 @@ func (r *OpenedxReconciler) mysqlService(d *cachev1.Openedx) *corev1.Service {
 		},
 	}
 
-	controllerutil.SetControllerReference(d, s, r.Scheme)
-	return s
+	controllerutil.SetControllerReference(instance, service, r.Scheme)
+	return service
 }
 
 // Returns whether or not the MySQL deployment is running
-func (r *OpenedxReconciler) isMysqlUp(d *cachev1.Openedx) bool {
+func (r *OpenedxReconciler) isMysqlUp(instance *cachev1.Openedx) bool {
 	deployment := &appsv1.Deployment{}
 
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
-		Name:      mysqlDeploymentName(),
-		Namespace: d.Namespace,
+		Name:      mysqlDeploymentName(instance),
+		Namespace: instance.Namespace,
 	}, deployment)
 
 	if err != nil {

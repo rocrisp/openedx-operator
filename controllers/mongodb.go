@@ -1,30 +1,35 @@
 package controllers
 
 import (
+	"context"
+
+	"github.com/prometheus/common/log"
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const mongodbPort = 27017
 
-func mongodbDeploymentName() string {
-	return "mongodb"
+func mongodbDeploymentName(instance *cachev1.Openedx) string {
+	return instance.Name + "-mongodb"
 }
 
-func mongodbServiceName() string {
-	return "mongodb"
+func mongodbServiceName(instance *cachev1.Openedx) string {
+	return instance.Name + "-mongodb-service"
 }
 
 func (r *OpenedxReconciler) mongodbDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
 	labels := labels(instance, "mongodb")
 	size := instance.Spec.Size
 
-	dep := &appsv1.Deployment{
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      mongodbDeploymentName(),
+			Name:      mongodbDeploymentName(instance),
 			Namespace: instance.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -62,6 +67,51 @@ func (r *OpenedxReconciler) mongodbDeployment(instance *cachev1.Openedx) *appsv1
 		},
 	}
 
-	controllerutil.SetControllerReference(instance, dep, r.Scheme)
-	return dep
+	controllerutil.SetControllerReference(instance, deployment, r.Scheme)
+	return deployment
+}
+
+func (r *OpenedxReconciler) mongodbService(instance *cachev1.Openedx) *corev1.Service {
+	labels := labels(instance, "mongodb")
+
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      mongodbServiceName(instance),
+			Namespace: instance.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: labels,
+			Ports: []corev1.ServicePort{{
+				Protocol:   corev1.ProtocolTCP,
+				Port:       80,
+				TargetPort: intstr.FromInt(nginxPort),
+				NodePort:   0,
+			}},
+		},
+	}
+
+	controllerutil.SetControllerReference(instance, service, r.Scheme)
+	return service
+}
+
+// Returns whether or not the MySQL deployment is running
+func (r *OpenedxReconciler) isMongodbUp(instance *cachev1.Openedx) bool {
+
+	deployment := &appsv1.Deployment{}
+
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      nginxDeploymentName(instance),
+		Namespace: instance.Namespace,
+	}, deployment)
+
+	if err != nil {
+		log.Error(err, "Deployment mongodb not found")
+		return false
+	}
+
+	if deployment.Status.ReadyReplicas == 1 {
+		return true
+	}
+
+	return false
 }

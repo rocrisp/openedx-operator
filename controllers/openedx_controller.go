@@ -18,8 +18,11 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/prometheus/common/log"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -106,16 +109,61 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	result, err = r.ensureService(req, instance, r.mysqlService(instance))
+	if result != nil {
+		return *result, err
+	}
+	mysqlRunning := r.isMysqlUp(instance)
+
+	if !mysqlRunning {
+		// If nginx isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		log.Info(fmt.Sprintf("MYSQL isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
+	}
+
 	// == MONODB ========
 	result, err = r.ensureDeployment(req, instance, r.mongodbDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
 
+	result, err = r.ensureService(req, instance, r.mongodbService(instance))
+	if result != nil {
+		return *result, err
+	}
+	mongodbRunning := r.isMongodbUp(instance)
+
+	if !mongodbRunning {
+		// If nginx isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		log.Info(fmt.Sprintf("MONGODB isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
+	}
+
 	// == NGINX ========
 	result, err = r.ensureDeployment(req, instance, r.nginxDeployment(instance))
 	if result != nil {
 		return *result, err
+	}
+
+	result, err = r.ensureService(req, instance, r.nginxService(instance))
+	if result != nil {
+		return *result, err
+	}
+	nginxRunning := r.isNginxUp(instance)
+
+	if !nginxRunning {
+		// If nginx isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		log.Info(fmt.Sprintf("NGINX isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
 	}
 
 	// == MEMCACHED ========
