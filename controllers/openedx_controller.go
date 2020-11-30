@@ -96,6 +96,10 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if result != nil {
 		return *result, err
 	}
+	result, err = r.ensureService(req, instance, r.cmsService(instance))
+	if result != nil {
+		return *result, err
+	}
 
 	// == CMS WORKER ==========
 	result, err = r.ensureDeployment(req, instance, r.cmsworkerDeployment(instance))

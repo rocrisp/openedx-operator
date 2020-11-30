@@ -16,22 +16,22 @@ import (
 const rabbitmqPort = 5672
 const rabbitmqImage = "docker.io/rabbitmq:3.6.10-management-alpine"
 
-func rabbitmqDeploymentName() string {
-	return "rabbitmq"
+func rabbitmqDeploymentName(instance *cachev1.Openedx) string {
+	return instance.Name + "-rabbitmq"
 }
 
-func rabbitmqServiceName() string {
-	return "rabbitmq"
+func rabbitmqServiceName(instance *cachev1.Openedx) string {
+	return instance.Name + "-rabbitmq-service"
 }
 
-func (r *OpenedxReconciler) rabbitmqDeployment(d *cachev1.Openedx) *appsv1.Deployment {
-	labels := labels(d, "rabbitmq")
-	size := d.Spec.Size
+func (r *OpenedxReconciler) rabbitmqDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
+	labels := labels(instance, "rabbitmq")
+	size := instance.Spec.Size
 
-	dep := &appsv1.Deployment{
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      rabbitmqDeploymentName(),
-			Namespace: d.Namespace,
+			Name:      rabbitmqDeploymentName(instance),
+			Namespace: instance.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,
@@ -68,8 +68,8 @@ func (r *OpenedxReconciler) rabbitmqDeployment(d *cachev1.Openedx) *appsv1.Deplo
 		},
 	}
 
-	controllerutil.SetControllerReference(d, dep, r.Scheme)
-	return dep
+	controllerutil.SetControllerReference(instance, deployment, r.Scheme)
+	return deployment
 }
 
 func (r *OpenedxReconciler) rabbitmqService(instance *cachev1.Openedx) *corev1.Service {
@@ -77,14 +77,17 @@ func (r *OpenedxReconciler) rabbitmqService(instance *cachev1.Openedx) *corev1.S
 
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      rabbitmqServiceName(),
+			Name:      rabbitmqServiceName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
 			Ports: []corev1.ServicePort{{
-				Port:       3306,
-				TargetPort: intstr.FromInt(sqlPort),
+				Protocol:   corev1.ProtocolTCP,
+				Port:       rabbitmqPort,
+				TargetPort: intstr.FromInt(rabbitmqPort),
+				NodePort:   0,
 			}},
 		},
 	}
@@ -94,16 +97,16 @@ func (r *OpenedxReconciler) rabbitmqService(instance *cachev1.Openedx) *corev1.S
 }
 
 // Returns whether or not the rabbitmq deployment is running
-func (r *OpenedxReconciler) israbbitmqUp(d *cachev1.Openedx) bool {
+func (r *OpenedxReconciler) israbbitmqUp(instance *cachev1.Openedx) bool {
 	deployment := &appsv1.Deployment{}
 
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
-		Name:      rabbitmqDeploymentName(),
-		Namespace: d.Namespace,
+		Name:      rabbitmqDeploymentName(instance),
+		Namespace: instance.Namespace,
 	}, deployment)
 
 	if err != nil {
-		log.Error(err, "Deployment rabbitmq not found")
+		log.Error(err, "Deployment rabbitmq not found\n")
 		return false
 	}
 

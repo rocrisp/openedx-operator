@@ -61,14 +61,17 @@ func (r *OpenedxReconciler) smtpService(instance *cachev1.Openedx) *corev1.Servi
 
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      rabbitmqServiceName(),
+			Name:      smtpServiceName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
 			Ports: []corev1.ServicePort{{
+				Protocol:   corev1.ProtocolTCP,
 				Port:       25,
 				TargetPort: intstr.FromInt(smtpPort),
+				NodePort:   0,
 			}},
 		},
 	}

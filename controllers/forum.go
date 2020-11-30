@@ -120,12 +120,15 @@ func (r *OpenedxReconciler) forumService(instance *cachev1.Openedx) *corev1.Serv
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      forumServiceName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
 			Ports: []corev1.ServicePort{{
-				Port:       4567,
+				Protocol:   corev1.ProtocolTCP,
+				Port:       forumPort,
 				TargetPort: intstr.FromInt(forumPort),
+				NodePort:   0,
 			}},
 		},
 	}

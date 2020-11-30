@@ -14,7 +14,7 @@ import (
 )
 
 const nginxImage = "docker.io/nginx:1.13"
-const nginxPort = 8080
+const nginxPort = 80
 
 func nginxDeploymentName(instance *cachev1.Openedx) string {
 	return instance.Name + "-nginx"
@@ -48,7 +48,7 @@ func (r *OpenedxReconciler) nginxDeployment(instance *cachev1.Openedx) *appsv1.D
 						Name:  "nginx",
 						Ports: []corev1.ContainerPort{
 							{
-								ContainerPort: 80,
+								ContainerPort: nginxPort,
 								Name:          "nginx1",
 							},
 							{
@@ -91,6 +91,7 @@ func (r *OpenedxReconciler) nginxService(instance *cachev1.Openedx) *corev1.Serv
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      nginxServiceName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,

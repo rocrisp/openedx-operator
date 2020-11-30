@@ -73,7 +73,7 @@ func (r *OpenedxReconciler) mysqlDeployment(instance *cachev1.Openedx) *appsv1.D
 						Image: sqlImage,
 						Name:  "mysql-server",
 						Ports: []corev1.ContainerPort{{
-							ContainerPort: 3306,
+							ContainerPort: sqlPort,
 							Name:          "mysql",
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
@@ -103,11 +103,12 @@ func (r *OpenedxReconciler) mysqlService(instance *cachev1.Openedx) *corev1.Serv
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      mysqlServiceName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
 			Ports: []corev1.ServicePort{{
-				Port:       3306,
+				Port:       sqlPort,
 				TargetPort: intstr.FromInt(sqlPort),
 			}},
 		},

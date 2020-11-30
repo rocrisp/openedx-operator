@@ -78,6 +78,7 @@ func (r *OpenedxReconciler) mongodbService(instance *cachev1.Openedx) *corev1.Se
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      mongodbServiceName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
