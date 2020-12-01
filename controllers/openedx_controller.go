@@ -18,11 +18,11 @@ package controllers
 
 import (
 	"context"
-	"fmt"
-	"time"
+	// "fmt"
+	// "time"
 
 	"github.com/go-logr/logr"
-	"github.com/prometheus/common/log"
+	// "github.com/prometheus/common/log"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -73,6 +73,13 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	var result *reconcile.Result
 
+	// == ConfigMap ========
+
+	result, err = r.ensureConfigMap(req, instance, r.ConfigMap(instance))
+	if result != nil {
+		return *result, err
+	}
+
 	// == LMS  ==========
 
 	result, err = r.ensureDeployment(req, instance, r.lmsDeployment(instance))
@@ -117,16 +124,16 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if result != nil {
 		return *result, err
 	}
-	mysqlRunning := r.isMysqlUp(instance)
+	// mysqlRunning := r.isMysqlUp(instance)
 
-	if !mysqlRunning {
-		// If nginx isn't running yet, requeue the reconcile
-		// to run again after a delay
-		delay := time.Second * time.Duration(5)
+	// if !mysqlRunning {
+	// 	// If nginx isn't running yet, requeue the reconcile
+	// 	// to run again after a delay
+	// 	delay := time.Second * time.Duration(5)
 
-		log.Info(fmt.Sprintf("MYSQL isn't running, waiting for %s", delay))
-		return reconcile.Result{RequeueAfter: delay}, nil
-	}
+	// 	log.Info(fmt.Sprintf("MYSQL isn't running, waiting for %s", delay))
+	// 	return reconcile.Result{RequeueAfter: delay}, nil
+	// }
 
 	// == MONODB ========
 	result, err = r.ensureDeployment(req, instance, r.mongodbDeployment(instance))

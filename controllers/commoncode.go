@@ -85,6 +85,40 @@ func (r *OpenedxReconciler) ensureService(request reconcile.Request,
 	return nil, nil
 }
 
+func (r *OpenedxReconciler) ensureConfigMap(request reconcile.Request,
+	instance *cachev1.Openedx,
+	cm *corev1.ConfigMap,
+) (*reconcile.Result, error) {
+	found := &corev1.ConfigMap{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      cm.Name,
+		Namespace: instance.Namespace,
+	}, found)
+	if err != nil && errors.IsNotFound(err) {
+
+		// Create the configMap
+		log.Info("Creating a new ConfigMap")
+		log.Info("ConfigMap Namespace : ", cm.Namespace)
+		log.Info("COnfigMap Name : ", cm.Name)
+		err = r.Client.Create(context.TODO(), cm)
+
+		if err != nil {
+			// Creation failed
+			log.Error(err, "Failed to create new ConfigMap", "ConfigMap.Namespace", cm.Namespace, "ConfigMap.Name", cm.Name)
+			return &reconcile.Result{}, err
+		} else {
+			// Creation was successful
+			return nil, nil
+		}
+	} else if err != nil {
+		// Error that isn't due to the ConfigMap not existing
+		log.Error(err, "Failed to get ConfigMap")
+		return &reconcile.Result{}, err
+	}
+
+	return nil, nil
+}
+
 func labels(instance *cachev1.Openedx, app string) map[string]string {
 	return map[string]string{
 		"app":        "OpenedX",
