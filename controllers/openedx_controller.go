@@ -75,7 +75,22 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// == ConfigMap ========
 
-	result, err = r.ensureConfigMap(req, instance, r.ConfigMap(instance))
+	result, err = r.ensureConfigMap(req, instance, r.ConfigMap1(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureConfigMap(req, instance, r.ConfigMap2(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureConfigMap(req, instance, r.ConfigMap3(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureConfigMap(req, instance, r.ConfigMap4(instance))
 	if result != nil {
 		return *result, err
 	}
