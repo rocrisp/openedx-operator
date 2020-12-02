@@ -119,6 +119,40 @@ func (r *OpenedxReconciler) ensureConfigMap(request reconcile.Request,
 	return nil, nil
 }
 
+func (r *OpenedxReconciler) ensurePVC(request reconcile.Request,
+	instance *cachev1.Openedx,
+	pvc *corev1.PersistentVolumeClaim,
+) (*reconcile.Result, error) {
+	found := &corev1.PersistentVolumeClaim{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      pvc.Name,
+		Namespace: instance.Namespace,
+	}, found)
+	if err != nil && errors.IsNotFound(err) {
+
+		// Create the pvc
+		log.Info("Creating a new pvc")
+		log.Info("pvc Namespace : ", pvc.Namespace)
+		log.Info("pvc Name : ", pvc.Name)
+		err = r.Client.Create(context.TODO(), pvc)
+
+		if err != nil {
+			// Creation failed
+			log.Error(err, "Failed to create new pvc", "pvc Namespace", pvc.Namespace, "pvc Name", pvc.Name)
+			return &reconcile.Result{}, err
+		} else {
+			// Creation was successful
+			return nil, nil
+		}
+	} else if err != nil {
+		// Error that isn't due to the pvc not existing
+		log.Error(err, "Failed to get pvc")
+		return &reconcile.Result{}, err
+	}
+
+	return nil, nil
+}
+
 func labels(instance *cachev1.Openedx, app string) map[string]string {
 	return map[string]string{
 		"app":        "OpenedX",

@@ -58,6 +58,7 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// Fetch the Openedx instance
 	instance := &cachev1.Openedx{}
+
 	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
 
 	if err != nil {
@@ -91,6 +92,25 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	result, err = r.ensureConfigMap(req, instance, r.ConfigMap4(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == Persistent Volume Claim ========
+
+	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("elasticsearch", "2Gi" instance))
+	if result != nil {
+		return *result, err
+	}
+	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("mongodb","5Gi" instance))
+	if result != nil {
+		return *result, err
+	}
+	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("mysql","5Gi" instance))
+	if result != nil {
+		return *result, err
+	}
+	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("rabbitmq","1Gi" instance))
 	if result != nil {
 		return *result, err
 	}
