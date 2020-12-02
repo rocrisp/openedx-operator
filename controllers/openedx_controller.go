@@ -131,6 +131,11 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// == MINIO ============
+	result, err = r.ensureDeployment(req, instance, r.minioDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
 	result, err = r.ensureService(req, instance, r.minioService(instance))
 	if result != nil {
 		return *result, err

@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const sqlImage = "mysql:5.7"
+const sqlImage = "docker.io/mysql:5.6.49"
 const sqlPort = 3306
 
 func mysqlDeploymentName(instance *cachev1.Openedx) string {
@@ -64,12 +64,19 @@ func (r *OpenedxReconciler) mysqlDeployment(instance *cachev1.Openedx) *appsv1.D
 				},
 				Spec: corev1.PodSpec{
 					Volumes: []corev1.Volume{{
-						Name: "mysql-data",
+						Name: "data",
 						VolumeSource: corev1.VolumeSource{
-							EmptyDir: &corev1.EmptyDirVolumeSource{},
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+								ClaimName: "mysql",
+							},
 						},
 					}},
 					Containers: []corev1.Container{{
+						Args: []string{
+							"mysqld",
+							"--character-set-server=utf8",
+							"--collation-server=utf8_general_ci",
+						},
 						Image: sqlImage,
 						Name:  "mysql-server",
 						Ports: []corev1.ContainerPort{{
@@ -77,13 +84,13 @@ func (r *OpenedxReconciler) mysqlDeployment(instance *cachev1.Openedx) *appsv1.D
 							Name:          "mysql",
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
-							Name:      "mysql-data",
+							Name:      "data",
 							MountPath: "/var/lib/mysql",
 						}},
 						Env: []corev1.EnvVar{
 							{
 								Name:  "MYSQL_ROOT_PASSWORD",
-								Value: "cakephp",
+								Value: "f9tQB4Nm",
 							},
 						},
 					}},
