@@ -8,6 +8,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+func forumjobName(instance *cachev1.Openedx) string {
+	return instance.Name + "-forumjob"
+}
+
 // getArgoExportCommand will return the command for the ArgoCD export process.
 func getArgoExportCommand(cr *cachev1.Openedx) []string {
 	cmd := make([]string, 0)
@@ -24,7 +28,7 @@ func getArgoExportContainerEnv(cr *cachev1.Openedx) []corev1.EnvVar {
 
 	env = append(env, corev1.EnvVar{
 		Name:  "MONGOHQ_URL",
-		Value: "mongodb://$MONGODB_AUTH$MONGODB_HOST:$MONGODB_PORT/cs_comments_service",
+		Value: "mongodb://mogodb:27017/cs_comments_service",
 	})
 
 	env = append(env, corev1.EnvVar{
@@ -55,7 +59,7 @@ func newJob(instance *cachev1.Openedx) *batchv1.Job {
 	labels := labels(instance, "job")
 	return &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.Name,
+			Name:      forumjobName(instance),
 			Namespace: instance.Namespace,
 			Labels:    labels,
 		},
@@ -82,7 +86,7 @@ func newPodTemplateSpec(cr *cachev1.Openedx) corev1.PodTemplateSpec {
 
 	return corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name,
+			Name:      forumjobName(cr),
 			Namespace: cr.Namespace,
 			Labels:    labels,
 		},
