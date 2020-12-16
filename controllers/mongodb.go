@@ -51,6 +51,13 @@ func (r *OpenedxReconciler) mongodbDeployment(instance *cachev1.Openedx) *appsv1
 						},
 					}},
 					Containers: []corev1.Container{{
+						Args: []string{
+							"mongod",
+							"--smallfiles",
+							"--nojournal",
+							"--storageEngine",
+							"wiredTiger",
+						},
 						Image: "docker.io/mongo:3.6.18",
 						Name:  "mongodb-server",
 						Ports: []corev1.ContainerPort{{

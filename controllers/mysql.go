@@ -90,7 +90,7 @@ func (r *OpenedxReconciler) mysqlDeployment(instance *cachev1.Openedx) *appsv1.D
 						Env: []corev1.EnvVar{
 							{
 								Name:  "MYSQL_ROOT_PASSWORD",
-								Value: "f9tQB4Nm",
+								Value: "mQh8ZJz4",
 							},
 						},
 					}},

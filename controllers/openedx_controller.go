@@ -152,6 +152,11 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	result, err = r.ensureJob(req, instance, r.job1(instance))
+	if result != nil {
+		return *result, err
+	}
+
 	// == MEMCACHED ========
 	result, err = r.ensureDeployment(req, instance, r.memcachedDeployment(instance))
 	if result != nil {

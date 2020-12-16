@@ -6,6 +6,7 @@ import (
 	"github.com/prometheus/common/log"
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -147,6 +148,40 @@ func (r *OpenedxReconciler) ensurePVC(request reconcile.Request,
 	} else if err != nil {
 		// Error that isn't due to the pvc not existing
 		log.Error(err, "Failed to get pvc")
+		return &reconcile.Result{}, err
+	}
+
+	return nil, nil
+}
+
+func (r *OpenedxReconciler) ensureJob(request reconcile.Request,
+	instance *cachev1.Openedx,
+	j *batchv1.Job,
+) (*reconcile.Result, error) {
+	found := &batchv1.Job{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      j.Name,
+		Namespace: instance.Namespace,
+	}, found)
+	if err != nil && errors.IsNotFound(err) {
+
+		// Create the configMap
+		log.Info("Creating a new Job")
+		log.Info("Job Namespace : ", j.Namespace)
+		log.Info("Job Name : ", j.Name)
+		err = r.Client.Create(context.TODO(), j)
+
+		if err != nil {
+			// Creation failed
+			log.Error(err, "Failed to create new Job", "Job.Namespace", j.Namespace, "Job.Name", j.Name)
+			return &reconcile.Result{}, err
+		} else {
+			// Creation was successful
+			return nil, nil
+		}
+	} else if err != nil {
+		// Error that isn't due to the ConfigMap not existing
+		log.Error(err, "Failed to get Job")
 		return &reconcile.Result{}, err
 	}
 
