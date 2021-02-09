@@ -20,6 +20,7 @@ import (
 	"flag"
 	"os"
 
+	routev1 "github.com/openshift/api/route/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -42,6 +43,7 @@ func init() {
 
 	utilruntime.Must(cachev1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
+
 }
 
 func main() {
@@ -64,6 +66,14 @@ func main() {
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
+		os.Exit(1)
+	}
+
+	// Register operator types with the runtime scheme.
+	// Adding the routev1
+
+	if err := routev1.AddToScheme(mgr.GetScheme()); err != nil {
+		setupLog.Error(err, "Unable to register routev1 scheme.")
 		os.Exit(1)
 	}
 

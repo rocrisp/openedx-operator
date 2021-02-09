@@ -119,11 +119,12 @@ func (r *OpenedxReconciler) cmsService(instance *cachev1.Openedx) *corev1.Servic
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
+			Type:     "NodePort",
 			Ports: []corev1.ServicePort{{
 				Protocol:   corev1.ProtocolTCP,
 				Port:       cmsPort,
 				TargetPort: intstr.FromInt(cmsPort),
-				NodePort:   0,
+				NodePort:   30020,
 			}},
 		},
 	}

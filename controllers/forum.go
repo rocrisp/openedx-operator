@@ -124,11 +124,12 @@ func (r *OpenedxReconciler) forumService(instance *cachev1.Openedx) *corev1.Serv
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
+			Type:     "NodePort",
 			Ports: []corev1.ServicePort{{
 				Protocol:   corev1.ProtocolTCP,
 				Port:       forumPort,
 				TargetPort: intstr.FromInt(forumPort),
-				NodePort:   0,
+				NodePort:   30040,
 			}},
 		},
 	}

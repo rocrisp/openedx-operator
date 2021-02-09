@@ -3,11 +3,13 @@ package controllers
 import (
 	"context"
 
+	routev1 "github.com/openshift/api/route/v1"
 	"github.com/prometheus/common/log"
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	extv1beta1 "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -182,6 +184,73 @@ func (r *OpenedxReconciler) ensureJob(request reconcile.Request,
 	} else if err != nil {
 		// Error that isn't due to the ConfigMap not existing
 		log.Error(err, "Failed to get Job")
+		return &reconcile.Result{}, err
+	}
+
+	return nil, nil
+}
+
+//See if route exist, create one if it doesn't already exist
+func (r *OpenedxReconciler) ensureRoute(request reconcile.Request,
+	instance *cachev1.Openedx,
+	rs *routev1.Route,
+) (*reconcile.Result, error) {
+	found := &routev1.Route{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      rs.Name,
+		Namespace: instance.Namespace,
+	}, found)
+	if err != nil && errors.IsNotFound(err) {
+
+		// Create the route
+		log.Info("Creating a new Route", "Route.Namespace", rs.Namespace, "Route.Name", rs.Name)
+		err = r.Client.Create(context.TODO(), rs)
+
+		if err != nil {
+			// Creation failed
+			log.Error(err, "Failed to create new Route", "Route.Namespace", rs.Namespace, "Route.Name", rs.Name)
+			return &reconcile.Result{}, err
+		} else {
+			// Creation was successful
+			return nil, nil
+		}
+	} else if err != nil {
+		// Error that isn't due to the service not existing
+		log.Error(err, "Failed to get Route")
+		return &reconcile.Result{}, err
+	}
+
+	return nil, nil
+}
+
+func (r *OpenedxReconciler) ensureIngress(request reconcile.Request,
+	instance *cachev1.Openedx,
+	ing *extv1beta1.Ingress,
+) (*reconcile.Result, error) {
+	found := &extv1beta1.Ingress{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      ing.Name,
+		Namespace: instance.Namespace,
+	}, found)
+	if err != nil && errors.IsNotFound(err) {
+
+		// Create the configMap
+		log.Info("Creating a new Ingress")
+		log.Info("Ingress Namespace : ", ing.Namespace)
+		log.Info("Ingress Name : ", ing.Name)
+		err = r.Client.Create(context.TODO(), ing)
+
+		if err != nil {
+			// Creation failed
+			log.Error(err, "Failed to create new Ingress", "Ingress.Namespace", ing.Namespace, "Ingress.Name", ing.Name)
+			return &reconcile.Result{}, err
+		} else {
+			// Creation was successful
+			return nil, nil
+		}
+	} else if err != nil {
+		// Error that isn't due to the ConfigMap not existing
+		log.Error(err, "Failed to get Ingress")
 		return &reconcile.Result{}, err
 	}
 

@@ -117,11 +117,12 @@ func (r *OpenedxReconciler) elasticsearchService(instance *cachev1.Openedx) *cor
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
+			Type:     "NodePort",
 			Ports: []corev1.ServicePort{{
 				Protocol:   corev1.ProtocolTCP,
 				Port:       elasticsearchPort,
 				TargetPort: intstr.FromInt(elasticsearchPort),
-				NodePort:   0,
+				NodePort:   30030,
 			}},
 		},
 	}

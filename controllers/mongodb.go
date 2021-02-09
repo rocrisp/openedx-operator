@@ -89,11 +89,12 @@ func (r *OpenedxReconciler) mongodbService(instance *cachev1.Openedx) *corev1.Se
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
+			Type:     "NodePort",
 			Ports: []corev1.ServicePort{{
 				Protocol:   corev1.ProtocolTCP,
 				Port:       80,
 				TargetPort: intstr.FromInt(nginxPort),
-				NodePort:   0,
+				NodePort:   30060,
 			}},
 		},
 	}

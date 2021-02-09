@@ -297,6 +297,28 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	// == INGRESS ==========
+	
+
+	result, err = r.ensureIngress(req, instance, r.lmsIngress("web-lms", instance))
+	if result != nil {
+		return *result, err
+	}
+	result, err = r.ensureIngress(req, instance, r.cmsIngress("web-cms", instance))
+	if result != nil {
+		return *result, err
+	}
+	result, err = r.ensureIngress(req, instance, r.previewIngress("web-preview", instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == ROUTE =======
+	//result, err = r.ensureRoute(req, instance, r.lmsRoute(instance))
+	//if result != nil {
+	//	return *result, err
+	//}
+
 	// == Finish ==========
 	// Everything went fine, don't requeue
 	return ctrl.Result{}, nil

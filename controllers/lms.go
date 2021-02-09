@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	routev1 "github.com/openshift/api/route/v1"
+
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -113,15 +115,36 @@ func (r *OpenedxReconciler) lmsService(instance *cachev1.Openedx) *corev1.Servic
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
+			Type:     "NodePort",
 			Ports: []corev1.ServicePort{{
 				Protocol:   corev1.ProtocolTCP,
 				Port:       lmsPort,
 				TargetPort: intstr.FromInt(lmsPort),
-				NodePort:   0,
+				NodePort:   30010,
 			}},
 		},
 	}
 
 	controllerutil.SetControllerReference(instance, service, r.Scheme)
 	return service
+}
+
+func (r *OpenedxReconciler) lmsRoute(instance *cachev1.Openedx) *routev1.Route {
+	labels := labels(instance, "lms")
+
+	route := &routev1.Route{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      lmsServiceName(instance),
+			Namespace: instance.Namespace,
+			Labels:    labels,
+		},
+		Spec: routev1.RouteSpec{
+			To: routev1.RouteTargetReference{
+				Kind: "Service",
+				Name: lmsServiceName(instance),
+			},
+		},
+	}
+	controllerutil.SetControllerReference(instance, route, r.Scheme)
+	return route
 }

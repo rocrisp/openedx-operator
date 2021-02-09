@@ -67,11 +67,12 @@ func (r *OpenedxReconciler) smtpService(instance *cachev1.Openedx) *corev1.Servi
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
+			Type:     "NodePort",
 			Ports: []corev1.ServicePort{{
 				Protocol:   corev1.ProtocolTCP,
 				Port:       25,
 				TargetPort: intstr.FromInt(smtpPort),
-				NodePort:   0,
+				NodePort:   30100,
 			}},
 		},
 	}

@@ -71,11 +71,12 @@ func (r *OpenedxReconciler) memcachedService(instance *cachev1.Openedx) *corev1.
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
+			Type:     "NodePort",
 			Ports: []corev1.ServicePort{{
 				Protocol:   corev1.ProtocolTCP,
 				Port:       memcachedPort,
 				TargetPort: intstr.FromInt(memcachedPort),
-				NodePort:   0,
+				NodePort:   30050,
 			}},
 		},
 	}
