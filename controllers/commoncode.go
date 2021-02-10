@@ -15,6 +15,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+const openedxNamespace = "openedx"
+
 func (r *OpenedxReconciler) ensureDeployment(request reconcile.Request,
 	instance *cachev1.Openedx,
 	dep *appsv1.Deployment,
@@ -24,14 +26,16 @@ func (r *OpenedxReconciler) ensureDeployment(request reconcile.Request,
 	found := &appsv1.Deployment{}
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
 		Name:      dep.Name,
-		Namespace: instance.Namespace,
+		Namespace: openedxNamespace,
 	}, found)
 	if err != nil && errors.IsNotFound(err) {
 
 		// Create the deployment
 		log.Info("Creating a new Deployment")
-		log.Info("Deployment Namespace : ", dep.Namespace)
+		log.Info("Deployment Namespace : ", openedxNamespace)
 		log.Info("Deployment Name : ", dep.Name)
+
+		dep.Namespace = openedxNamespace
 
 		err = r.Client.Create(context.TODO(), dep)
 
@@ -61,19 +65,20 @@ func (r *OpenedxReconciler) ensureService(request reconcile.Request,
 	found := &corev1.Service{}
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
 		Name:      s.Name,
-		Namespace: instance.Namespace,
+		Namespace: openedxNamespace,
 	}, found)
 	if err != nil && errors.IsNotFound(err) {
 
 		// Create the service
 		log.Info("Creating a new Service")
-		log.Info("Service Namespace : ", s.Namespace)
+		log.Info("Service Namespace : ", openedxNamespace)
 		log.Info("Service Name : ", s.Name)
+		s.Namespace = openedxNamespace
 		err = r.Client.Create(context.TODO(), s)
 
 		if err != nil {
 			// Creation failed
-			log.Error(err, "Failed to create new Service", "Service.Namespace", s.Namespace, "Service.Name", s.Name)
+			log.Error(err, "Failed to create new Service. ", "Service.Namespace : ", s.Namespace, " Service.Name : ", s.Name)
 			return &reconcile.Result{}, err
 		} else {
 			// Creation was successful
@@ -88,6 +93,40 @@ func (r *OpenedxReconciler) ensureService(request reconcile.Request,
 	return nil, nil
 }
 
+func (r *OpenedxReconciler) ensureNamespace(request reconcile.Request,
+	instance *cachev1.Openedx,
+	ns *corev1.Namespace,
+) (*reconcile.Result, error) {
+	found := &corev1.Namespace{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name: openedxNamespace,
+	}, found)
+
+	if err != nil && errors.IsNotFound(err) {
+
+		// Create the namespace
+		log.Info("Creating a new namespace")
+		log.Info("Namespace :", openedxNamespace)
+		ns.Namespace = openedxNamespace
+		err = r.Client.Create(context.TODO(), ns)
+
+		if err != nil {
+			// Creation failed
+			log.Error(err, "Failed to create new namespace. ", "Namespace : ", ns.Namespace)
+			return &reconcile.Result{}, err
+		} else {
+			// Creation was successful
+			return nil, nil
+		}
+	} else if err != nil {
+		// Error that isn't due to the namespace not existing
+		log.Error(err, "Failed to get namespace")
+		return &reconcile.Result{}, err
+	}
+
+	return nil, nil
+}
+
 func (r *OpenedxReconciler) ensureConfigMap(request reconcile.Request,
 	instance *cachev1.Openedx,
 	cm *corev1.ConfigMap,
@@ -95,19 +134,20 @@ func (r *OpenedxReconciler) ensureConfigMap(request reconcile.Request,
 	found := &corev1.ConfigMap{}
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
 		Name:      cm.Name,
-		Namespace: instance.Namespace,
+		Namespace: openedxNamespace,
 	}, found)
 	if err != nil && errors.IsNotFound(err) {
 
 		// Create the configMap
 		log.Info("Creating a new ConfigMap")
-		log.Info("ConfigMap Namespace : ", cm.Namespace)
+		log.Info("ConfigMap Namespace : ", openedxNamespace)
 		log.Info("COnfigMap Name : ", cm.Name)
+		cm.Namespace = openedxNamespace
 		err = r.Client.Create(context.TODO(), cm)
 
 		if err != nil {
 			// Creation failed
-			log.Error(err, "Failed to create new ConfigMap", "ConfigMap.Namespace", cm.Namespace, "ConfigMap.Name", cm.Name)
+			log.Error(err, "Failed to create new ConfigMap. ", "ConfigMap.Namespace : ", cm.Namespace, " ConfigMap.Name : ", cm.Name)
 			return &reconcile.Result{}, err
 		} else {
 			// Creation was successful
@@ -129,19 +169,22 @@ func (r *OpenedxReconciler) ensurePVC(request reconcile.Request,
 	found := &corev1.PersistentVolumeClaim{}
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
 		Name:      pvc.Name,
-		Namespace: instance.Namespace,
+		Namespace: openedxNamespace,
 	}, found)
 	if err != nil && errors.IsNotFound(err) {
 
 		// Create the pvc
 		log.Info("Creating a new pvc")
-		log.Info("pvc Namespace : ", pvc.Namespace)
+		log.Info("pvc Namespace : ", openedxNamespace)
 		log.Info("pvc Name : ", pvc.Name)
+
+		pvc.Namespace = openedxNamespace
+
 		err = r.Client.Create(context.TODO(), pvc)
 
 		if err != nil {
 			// Creation failed
-			log.Error(err, "Failed to create new pvc", "pvc Namespace", pvc.Namespace, "pvc Name", pvc.Name)
+			log.Error(err, "Failed to create new pvc. ", "pvc Namespace :  ", pvc.Namespace, " pvc Name : ", pvc.Name)
 			return &reconcile.Result{}, err
 		} else {
 			// Creation was successful
@@ -163,19 +206,22 @@ func (r *OpenedxReconciler) ensureJob(request reconcile.Request,
 	found := &batchv1.Job{}
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
 		Name:      j.Name,
-		Namespace: instance.Namespace,
+		Namespace: openedxNamespace,
 	}, found)
 	if err != nil && errors.IsNotFound(err) {
 
 		// Create the configMap
 		log.Info("Creating a new Job")
-		log.Info("Job Namespace : ", j.Namespace)
+		log.Info("Job Namespace : ", openedxNamespace)
 		log.Info("Job Name : ", j.Name)
+
+		j.Namespace = openedxNamespace
+
 		err = r.Client.Create(context.TODO(), j)
 
 		if err != nil {
 			// Creation failed
-			log.Error(err, "Failed to create new Job", "Job.Namespace", j.Namespace, "Job.Name", j.Name)
+			log.Error(err, "Failed to create new Job. ", "Job.Namespace : ", j.Namespace, " Job.Name : ", j.Name)
 			return &reconcile.Result{}, err
 		} else {
 			// Creation was successful
@@ -198,17 +244,19 @@ func (r *OpenedxReconciler) ensureRoute(request reconcile.Request,
 	found := &routev1.Route{}
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
 		Name:      rs.Name,
-		Namespace: instance.Namespace,
+		Namespace: openedxNamespace,
 	}, found)
 	if err != nil && errors.IsNotFound(err) {
 
 		// Create the route
-		log.Info("Creating a new Route", "Route.Namespace", rs.Namespace, "Route.Name", rs.Name)
+		log.Info("Creating a new Route. ", "Route.Namespace : ", rs.Namespace, " Route.Name : ", rs.Name)
+
+		rs.Namespace = openedxNamespace
 		err = r.Client.Create(context.TODO(), rs)
 
 		if err != nil {
 			// Creation failed
-			log.Error(err, "Failed to create new Route", "Route.Namespace", rs.Namespace, "Route.Name", rs.Name)
+			log.Error(err, "Failed to create new Route. ", " Route.Namespace : ", rs.Namespace, " Route.Name : ", rs.Name)
 			return &reconcile.Result{}, err
 		} else {
 			// Creation was successful
@@ -230,19 +278,22 @@ func (r *OpenedxReconciler) ensureIngress(request reconcile.Request,
 	found := &extv1beta1.Ingress{}
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
 		Name:      ing.Name,
-		Namespace: instance.Namespace,
+		Namespace: openedxNamespace,
 	}, found)
 	if err != nil && errors.IsNotFound(err) {
 
 		// Create the configMap
 		log.Info("Creating a new Ingress")
-		log.Info("Ingress Namespace : ", ing.Namespace)
+		log.Info("Ingress Namespace : ", openedxNamespace)
 		log.Info("Ingress Name : ", ing.Name)
+
+		ing.Namespace = openedxNamespace
+
 		err = r.Client.Create(context.TODO(), ing)
 
 		if err != nil {
 			// Creation failed
-			log.Error(err, "Failed to create new Ingress", "Ingress.Namespace", ing.Namespace, "Ingress.Name", ing.Name)
+			log.Error(err, "Failed to create new Ingress. ", "Ingress.Namespace : ", ing.Namespace, " Ingress.Name : ", ing.Name)
 			return &reconcile.Result{}, err
 		} else {
 			// Creation was successful

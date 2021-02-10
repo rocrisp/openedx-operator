@@ -71,8 +71,23 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
+	r.Log.Info("This operator only works with openedx namespace")
+
+	namespaceName := instance.Name
+	if namespaceName == "openedx" {
+		r.Log.Info("Using openedx namespace")
+	} else {
+		r.Log.Info("Using ", namespaceName, " namespace")
+	}
 
 	var result *reconcile.Result
+
+	// == namespace ======================
+
+	result, err = r.ensureNamespace(req, instance, r.namespace(instance))
+	if result != nil {
+		return *result, err
+	}
 
 	// == ConfigMap ========
 
@@ -298,7 +313,6 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// == INGRESS ==========
-	
 
 	result, err = r.ensureIngress(req, instance, r.lmsIngress("web-lms", instance))
 	if result != nil {

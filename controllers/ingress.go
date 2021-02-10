@@ -22,23 +22,20 @@ func newIngress(name string, cr *cachev1.Openedx) *extv1beta1.Ingress {
 	}
 }
 
-// newIngressWithName returns a new Ingress with the given name and ArgoCD.
 func (r *OpenedxReconciler) lmsIngress(name string, cr *cachev1.Openedx) *extv1beta1.Ingress {
 	ingress := newIngress(name, cr)
 
 	// Add rules
 	ingress.Spec.Rules = []extv1beta1.IngressRule{
 		{
-			Hosts: []extv1beta1.Paths {
-				Host:  "www.lms-openedx.apps.demo.coreostrain.me",
-				IngressRuleValue: extv1beta1.IngressRuleValue{
-					HTTP: &extv1beta1.HTTPIngressRuleValue{
-						Paths: []extv1beta1.HTTPIngressPath{
-							{
-								Backend: extv1beta1.IngressBackend{
-									ServiceName: "nginx",
-									ServicePort: intstr.FromInt(ingressPort),
-								},
+			Host: "www.lms-openedx.apps.demo.coreostrain.me",
+			IngressRuleValue: extv1beta1.IngressRuleValue{
+				HTTP: &extv1beta1.HTTPIngressRuleValue{
+					Paths: []extv1beta1.HTTPIngressPath{
+						{
+							Backend: extv1beta1.IngressBackend{
+								ServiceName: "nginx",
+								ServicePort: intstr.FromInt(ingressPort),
 							},
 						},
 					},
