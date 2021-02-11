@@ -118,7 +118,6 @@ func (r *OpenedxReconciler) mysqlService(instance *cachev1.Openedx) *corev1.Serv
 			Ports: []corev1.ServicePort{{
 				Port:       sqlPort,
 				TargetPort: intstr.FromInt(sqlPort),
-				NodePort:   30070,
 			}},
 		},
 	}

@@ -76,7 +76,6 @@ func (r *OpenedxReconciler) memcachedService(instance *cachev1.Openedx) *corev1.
 				Protocol:   corev1.ProtocolTCP,
 				Port:       memcachedPort,
 				TargetPort: intstr.FromInt(memcachedPort),
-				NodePort:   30050,
 			}},
 		},
 	}

@@ -100,7 +100,6 @@ func (r *OpenedxReconciler) nginxService(instance *cachev1.Openedx) *corev1.Serv
 				Protocol:   corev1.ProtocolTCP,
 				Port:       80,
 				TargetPort: intstr.FromInt(nginxPort),
-				NodePort:   30080,
 			}},
 		},
 	}

@@ -129,7 +129,6 @@ func (r *OpenedxReconciler) forumService(instance *cachev1.Openedx) *corev1.Serv
 				Protocol:   corev1.ProtocolTCP,
 				Port:       forumPort,
 				TargetPort: intstr.FromInt(forumPort),
-				NodePort:   30040,
 			}},
 		},
 	}

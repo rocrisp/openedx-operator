@@ -89,28 +89,6 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	// == ConfigMap ========
-
-	result, err = r.ensureConfigMap(req, instance, r.ConfigMap1(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	result, err = r.ensureConfigMap(req, instance, r.ConfigMap2(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	result, err = r.ensureConfigMap(req, instance, r.ConfigMap3(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	result, err = r.ensureConfigMap(req, instance, r.ConfigMap4(instance))
-	if result != nil {
-		return *result, err
-	}
-
 	// == Persistent Volume Claim ========
 
 	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("elasticsearch", "2Gi", instance))
@@ -134,8 +112,31 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	// == ELASTICSEARCH ========
-	result, err = r.ensureDeployment(req, instance, r.elasticsearchDeployment(instance))
+	// == ConfigMap ========
+
+	result, err = r.ensureConfigMap(req, instance, r.ConfigMap1(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureConfigMap(req, instance, r.ConfigMap2(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureConfigMap(req, instance, r.ConfigMap3(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureConfigMap(req, instance, r.ConfigMap4(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == SERVICE ========
+
+	result, err = r.ensureService(req, instance, r.cmsService(instance))
 	if result != nil {
 		return *result, err
 	}
@@ -145,13 +146,59 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	// == MINIO ============
-	result, err = r.ensureDeployment(req, instance, r.minioDeployment(instance))
+	result, err = r.ensureService(req, instance, r.forumService(instance))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.minioService(instance))
+	result, err = r.ensureService(req, instance, r.lmsService(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureService(req, instance, r.memcachedService(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureService(req, instance, r.mongodbService(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureService(req, instance, r.mysqlService(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureService(req, instance, r.nginxService(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureService(req, instance, r.rabbitmqService(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureService(req, instance, r.smtpService(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == CMS WORKER ==========
+	result, err = r.ensureDeployment(req, instance, r.cmsworkerDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+	// == CMS  ==========
+	result, err = r.ensureDeployment(req, instance, r.cmsDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == ELASTICSEARCH ========
+	result, err = r.ensureDeployment(req, instance, r.elasticsearchDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
@@ -162,12 +209,14 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.forumService(instance))
+	// == LMS WORKER ==========
+	result, err = r.ensureDeployment(req, instance, r.lmsworkerDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
+	// == LMS  ==========
 
-	result, err = r.ensureJob(req, instance, r.job1(instance))
+	result, err = r.ensureDeployment(req, instance, r.lmsDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
@@ -178,10 +227,54 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.memcachedService(instance))
+	// == MONGODB ========
+	result, err = r.ensureDeployment(req, instance, r.mongodbDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
+
+	// == MYSQL ========
+	result, err = r.ensureDeployment(req, instance, r.mysqlDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == NGINX ========
+	result, err = r.ensureDeployment(req, instance, r.nginxDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == RABBITMQ ========
+	result, err = r.ensureDeployment(req, instance, r.rabbitmqDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == SMTP ========
+	result, err = r.ensureDeployment(req, instance, r.smtpDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == JOB =======
+
+	result, err = r.ensureJob(req, instance, r.job1(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// == MINIO ============
+	//result, err = r.ensureDeployment(req, instance, r.minioDeployment(instance))
+	//if result != nil {
+	//	return *result, err
+	//}
+
+	//result, err = r.ensureService(req, instance, r.minioService(instance))
+	//if result != nil {
+	//	return *result, err
+	//}
+
 	// memcachedRunning := r.isMemcachedUp(instance)
 
 	// if !memcachedRunning {
@@ -193,16 +286,6 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// 	return reconcile.Result{RequeueAfter: delay}, nil
 	// }
 
-	// == MONODB ========
-	result, err = r.ensureDeployment(req, instance, r.mongodbDeployment(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	result, err = r.ensureService(req, instance, r.mongodbService(instance))
-	if result != nil {
-		return *result, err
-	}
 	// mongodbRunning := r.isMongodbUp(instance)
 
 	// if !mongodbRunning {
@@ -214,16 +297,6 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// 	return reconcile.Result{RequeueAfter: delay}, nil
 	// }
 
-	// == MYSQL ========
-	result, err = r.ensureDeployment(req, instance, r.mysqlDeployment(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	result, err = r.ensureService(req, instance, r.mysqlService(instance))
-	if result != nil {
-		return *result, err
-	}
 	// mysqlRunning := r.isMysqlUp(instance)
 
 	// if !mysqlRunning {
@@ -235,16 +308,6 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// 	return reconcile.Result{RequeueAfter: delay}, nil
 	// }
 
-	// == NGINX ========
-	result, err = r.ensureDeployment(req, instance, r.nginxDeployment(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	result, err = r.ensureService(req, instance, r.nginxService(instance))
-	if result != nil {
-		return *result, err
-	}
 	// nginxRunning := r.isNginxUp(instance)
 
 	// if !nginxRunning {
@@ -255,62 +318,6 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// 	log.Info(fmt.Sprintf("NGINX isn't running, waiting for %s", delay))
 	// 	return reconcile.Result{RequeueAfter: delay}, nil
 	// }
-
-	// == RABBITMQ ========
-	result, err = r.ensureDeployment(req, instance, r.rabbitmqDeployment(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	result, err = r.ensureService(req, instance, r.rabbitmqService(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	// == SMTP ========
-	result, err = r.ensureDeployment(req, instance, r.smtpDeployment(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	result, err = r.ensureService(req, instance, r.smtpService(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	// == LMS  ==========
-
-	result, err = r.ensureDeployment(req, instance, r.lmsDeployment(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	result, err = r.ensureService(req, instance, r.lmsService(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	// == LMS WORKER ==========
-	result, err = r.ensureDeployment(req, instance, r.lmsworkerDeployment(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	// == CMS  ==========
-	result, err = r.ensureDeployment(req, instance, r.cmsDeployment(instance))
-	if result != nil {
-		return *result, err
-	}
-	result, err = r.ensureService(req, instance, r.cmsService(instance))
-	if result != nil {
-		return *result, err
-	}
-
-	// == CMS WORKER ==========
-	result, err = r.ensureDeployment(req, instance, r.cmsworkerDeployment(instance))
-	if result != nil {
-		return *result, err
-	}
 
 	// == INGRESS ==========
 

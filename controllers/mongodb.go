@@ -94,7 +94,6 @@ func (r *OpenedxReconciler) mongodbService(instance *cachev1.Openedx) *corev1.Se
 				Protocol:   corev1.ProtocolTCP,
 				Port:       80,
 				TargetPort: intstr.FromInt(nginxPort),
-				NodePort:   30060,
 			}},
 		},
 	}

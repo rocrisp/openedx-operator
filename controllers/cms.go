@@ -124,7 +124,6 @@ func (r *OpenedxReconciler) cmsService(instance *cachev1.Openedx) *corev1.Servic
 				Protocol:   corev1.ProtocolTCP,
 				Port:       cmsPort,
 				TargetPort: intstr.FromInt(cmsPort),
-				NodePort:   30020,
 			}},
 		},
 	}

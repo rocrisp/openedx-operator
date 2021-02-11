@@ -120,7 +120,6 @@ func (r *OpenedxReconciler) lmsService(instance *cachev1.Openedx) *corev1.Servic
 				Protocol:   corev1.ProtocolTCP,
 				Port:       lmsPort,
 				TargetPort: intstr.FromInt(lmsPort),
-				NodePort:   30010,
 			}},
 		},
 	}

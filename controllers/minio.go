@@ -102,7 +102,6 @@ func (r *OpenedxReconciler) minioService(instance *cachev1.Openedx) *corev1.Serv
 				Protocol:   corev1.ProtocolTCP,
 				Port:       minioPort,
 				TargetPort: intstr.FromInt(minioPort),
-				NodePort:   30200,
 			}},
 		},
 	}
