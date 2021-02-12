@@ -313,7 +313,7 @@ func labels(instance *cachev1.Openedx, app string) map[string]string {
 		"app":        "OpenedX",
 		"instance":   instance.Name,
 		"managed-by": "rose",
-		"tier":       app,
+		"name":       app,
 		"part-of":    "openedx",
 		"version":    "10.4.0",
 	}
