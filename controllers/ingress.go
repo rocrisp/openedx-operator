@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const ingressPort = 8000
+const ingressPort = 80
 
 // newIngress returns a new Ingress instance for the given Openedx.
 func newIngress(name string, cr *cachev1.Openedx) *extv1beta1.Ingress {
@@ -22,13 +22,13 @@ func newIngress(name string, cr *cachev1.Openedx) *extv1beta1.Ingress {
 	}
 }
 
-func (r *OpenedxReconciler) lmsIngress(name string, cr *cachev1.Openedx) *extv1beta1.Ingress {
+func (r *OpenedxReconciler) ingress(name string, cr *cachev1.Openedx) *extv1beta1.Ingress {
 	ingress := newIngress(name, cr)
 
 	// Add rules
 	ingress.Spec.Rules = []extv1beta1.IngressRule{
 		{
-			Host: "www.lms-openedx.apps.demo.coreostrain.me",
+			Host: "www.lms-openedx.apps.courses.operatortrain.me",
 			IngressRuleValue: extv1beta1.IngressRuleValue{
 				HTTP: &extv1beta1.HTTPIngressRuleValue{
 					Paths: []extv1beta1.HTTPIngressPath{
@@ -42,19 +42,8 @@ func (r *OpenedxReconciler) lmsIngress(name string, cr *cachev1.Openedx) *extv1b
 				},
 			},
 		},
-	}
-	controllerutil.SetControllerReference(cr, ingress, r.Scheme)
-	return ingress
-}
-
-// newIngressWithName returns a new Ingress with the given name and ArgoCD.
-func (r *OpenedxReconciler) previewIngress(name string, cr *cachev1.Openedx) *extv1beta1.Ingress {
-	ingress := newIngress(name, cr)
-
-	// Add rules
-	ingress.Spec.Rules = []extv1beta1.IngressRule{
 		{
-			Host: "preview.www.lms-openedx.apps.demo.coreostrain.me",
+			Host: "preview.www.lms-openedx.apps.courses.operatortrain.me",
 			IngressRuleValue: extv1beta1.IngressRuleValue{
 				HTTP: &extv1beta1.HTTPIngressRuleValue{
 					Paths: []extv1beta1.HTTPIngressPath{
@@ -68,19 +57,8 @@ func (r *OpenedxReconciler) previewIngress(name string, cr *cachev1.Openedx) *ex
 				},
 			},
 		},
-	}
-	controllerutil.SetControllerReference(cr, ingress, r.Scheme)
-	return ingress
-}
-
-// newIngressWithName returns a new Ingress with the given name and ArgoCD.
-func (r *OpenedxReconciler) cmsIngress(name string, cr *cachev1.Openedx) *extv1beta1.Ingress {
-	ingress := newIngress(name, cr)
-
-	// Add rules
-	ingress.Spec.Rules = []extv1beta1.IngressRule{
 		{
-			Host: "studio.www.lms-openedx.apps.demo.coreostrain.me",
+			Host: "studio.www.lms-openedx.apps.courses.operatortrain.me",
 			IngressRuleValue: extv1beta1.IngressRuleValue{
 				HTTP: &extv1beta1.HTTPIngressRuleValue{
 					Paths: []extv1beta1.HTTPIngressPath{
