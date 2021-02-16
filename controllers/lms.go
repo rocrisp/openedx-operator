@@ -43,11 +43,6 @@ func (r *OpenedxReconciler) lmsDeployment(instance *cachev1.Openedx) *appsv1.Dep
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Args: []string{
-							"./manage.py",
-							"lms",
-							"migrate",
-						},
 						Image: lmsImage,
 						Name:  "lms",
 						Ports: []corev1.ContainerPort{{
