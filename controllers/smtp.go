@@ -17,7 +17,7 @@ func smtpDeploymentName(instance *cachev1.Openedx) string {
 }
 
 func smtpServiceName(instance *cachev1.Openedx) string {
-	return instance.Name + "-smtp-service"
+	return "smtp"
 }
 
 func (r *OpenedxReconciler) smtpDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
@@ -28,6 +28,7 @@ func (r *OpenedxReconciler) smtpDeployment(instance *cachev1.Openedx) *appsv1.De
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      smtpDeploymentName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,

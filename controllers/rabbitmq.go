@@ -21,7 +21,7 @@ func rabbitmqDeploymentName(instance *cachev1.Openedx) string {
 }
 
 func rabbitmqServiceName(instance *cachev1.Openedx) string {
-	return instance.Name + "-rabbitmq-service"
+	return "rabbitmq"
 }
 
 func (r *OpenedxReconciler) rabbitmqDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
@@ -32,6 +32,7 @@ func (r *OpenedxReconciler) rabbitmqDeployment(instance *cachev1.Openedx) *appsv
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      rabbitmqDeploymentName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,

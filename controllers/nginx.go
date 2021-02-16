@@ -21,7 +21,7 @@ func nginxDeploymentName(instance *cachev1.Openedx) string {
 }
 
 func nginxServiceName(instance *cachev1.Openedx) string {
-	return instance.Name + "-nginx-service"
+	return "nginx"
 }
 
 func (r *OpenedxReconciler) nginxDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
@@ -32,6 +32,7 @@ func (r *OpenedxReconciler) nginxDeployment(instance *cachev1.Openedx) *appsv1.D
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      nginxDeploymentName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,
@@ -69,7 +70,7 @@ func (r *OpenedxReconciler) nginxDeployment(instance *cachev1.Openedx) *appsv1.D
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{
-										Name: "openedx-config",
+										Name: "nginx-config",
 									},
 								},
 							},

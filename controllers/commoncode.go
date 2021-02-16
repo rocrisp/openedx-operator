@@ -308,13 +308,28 @@ func (r *OpenedxReconciler) ensureIngress(request reconcile.Request,
 	return nil, nil
 }
 
+func annotations(instance *cachev1.Openedx, app string) map[string]string {
+	return map[string]string{
+		"app":        "OpenedX",
+		"instance":   instance.Name,
+		"managed-by": "RedHat",
+		"name":       app,
+		"part-of":    "openedx",
+		"version":    "10.4.0",
+		"stage":      "dev",
+		"release":    "POC",
+	}
+}
+
 func labels(instance *cachev1.Openedx, app string) map[string]string {
 	return map[string]string{
 		"app":        "OpenedX",
 		"instance":   instance.Name,
-		"managed-by": "rose",
+		"managed-by": "RedHat",
 		"name":       app,
 		"part-of":    "openedx",
 		"version":    "10.4.0",
+		"stage":      "dev",
+		"release":    "POC",
 	}
 }

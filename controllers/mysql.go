@@ -21,7 +21,7 @@ func mysqlDeploymentName(instance *cachev1.Openedx) string {
 }
 
 func mysqlServiceName(instance *cachev1.Openedx) string {
-	return instance.Name + "-mysql-service"
+	return "mysql"
 }
 
 func mysqlAuthName() string {
@@ -52,6 +52,7 @@ func (r *OpenedxReconciler) mysqlDeployment(instance *cachev1.Openedx) *appsv1.D
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      mysqlDeploymentName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,
@@ -63,14 +64,25 @@ func (r *OpenedxReconciler) mysqlDeployment(instance *cachev1.Openedx) *appsv1.D
 					Labels: labels,
 				},
 				Spec: corev1.PodSpec{
-					Volumes: []corev1.Volume{{
-						Name: "data",
-						VolumeSource: corev1.VolumeSource{
-							PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-								ClaimName: "mysql",
+					Volumes: []corev1.Volume{
+						{
+							Name: "data",
+							VolumeSource: corev1.VolumeSource{
+								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+									ClaimName: "mysql",
+								},
 							},
-						},
-					}},
+						}, {
+							Name: "mysql-initdb",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: "mysql-initdb-config",
+									},
+								},
+							},
+						}},
+
 					Containers: []corev1.Container{{
 						Args: []string{
 							"mysqld",
@@ -83,10 +95,16 @@ func (r *OpenedxReconciler) mysqlDeployment(instance *cachev1.Openedx) *appsv1.D
 							ContainerPort: sqlPort,
 							Name:          "mysql",
 						}},
-						VolumeMounts: []corev1.VolumeMount{{
-							Name:      "data",
-							MountPath: "/var/lib/mysql",
-						}},
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name:      "data",
+								MountPath: "/var/lib/mysql",
+							},
+							{
+								Name:      "mysql-initdb",
+								MountPath: "/docker-entrypoint-initdb.d",
+							},
+						},
 						Env: []corev1.EnvVar{
 							{
 								Name:  "MYSQL_ROOT_PASSWORD",

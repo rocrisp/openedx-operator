@@ -21,7 +21,7 @@ func memcachedDeploymentName(instance *cachev1.Openedx) string {
 }
 
 func memcachedServiceName(instance *cachev1.Openedx) string {
-	return instance.Name + "-memcached-service"
+	return "memcached"
 }
 
 func (r *OpenedxReconciler) memcachedDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
@@ -32,6 +32,7 @@ func (r *OpenedxReconciler) memcachedDeployment(instance *cachev1.Openedx) *apps
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      memcachedDeploymentName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,

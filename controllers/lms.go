@@ -19,7 +19,7 @@ func lmsDeploymentName(lms *cachev1.Openedx) string {
 }
 
 func lmsServiceName(lms *cachev1.Openedx) string {
-	return lms.Name + "-lms-service"
+	return "lms"
 }
 
 func (r *OpenedxReconciler) lmsDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
@@ -30,6 +30,7 @@ func (r *OpenedxReconciler) lmsDeployment(instance *cachev1.Openedx) *appsv1.Dep
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      lmsDeploymentName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,
@@ -42,6 +43,11 @@ func (r *OpenedxReconciler) lmsDeployment(instance *cachev1.Openedx) *appsv1.Dep
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
+						Args: []string{
+							"./manage.py",
+							"lms",
+							"migrate",
+						},
 						Image: lmsImage,
 						Name:  "lms",
 						Ports: []corev1.ContainerPort{{

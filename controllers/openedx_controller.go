@@ -134,6 +134,11 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	result, err = r.ensureConfigMap(req, instance, r.ConfigMap5(instance))
+	if result != nil {
+		return *result, err
+	}
+
 	// == SERVICE ========
 
 	result, err = r.ensureService(req, instance, r.cmsService(instance))
@@ -259,10 +264,22 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// == JOB =======
 
-	result, err = r.ensureJob(req, instance, r.job1(instance))
+	//== CMS Job ========
+	result, err = r.ensureJob(req, instance, r.cmsJob(instance))
 	if result != nil {
 		return *result, err
 	}
+
+	//== LMS Job ========
+	result, err = r.ensureJob(req, instance, r.lmsJob(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// result, err = r.ensureJob(req, instance, r.job1(instance))
+	// if result != nil {
+	// 	return *result, err
+	// }
 
 	// == MINIO ============
 	//result, err = r.ensureDeployment(req, instance, r.minioDeployment(instance))

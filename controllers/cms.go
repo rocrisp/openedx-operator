@@ -12,21 +12,23 @@ import (
 const cmsImage = "docker.io/overhangio/openedx:10.4.0"
 const cmsPort = 8000
 
-func cmsDeploymentName(instance *cachev1.Openedx) string {
-	return instance.Name + "-cms"
+func cmsDeploymentName(cr *cachev1.Openedx) string {
+	return cr.Name + "-cms"
 }
-func cmsServiceName(instance *cachev1.Openedx) string {
-	return instance.Name + "-cms-service"
+func cmsServiceName(cr *cachev1.Openedx) string {
+	return "cms"
 }
 
-func (r *OpenedxReconciler) cmsDeployment(cms *cachev1.Openedx) *appsv1.Deployment {
-	labels := labels(cms, "cms")
-	size := cms.Spec.Size
+func (r *OpenedxReconciler) cmsDeployment(cr *cachev1.Openedx) *appsv1.Deployment {
+	labels := labels(cr, "cms")
+	//annotations := annotations(cr, "cms")
+	size := cr.Spec.Size
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cmsDeploymentName(cms),
-			Namespace: cms.Namespace,
+			Name:      cmsDeploymentName(cr),
+			Namespace: cr.Namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,
@@ -104,7 +106,7 @@ func (r *OpenedxReconciler) cmsDeployment(cms *cachev1.Openedx) *appsv1.Deployme
 		},
 	}
 
-	controllerutil.SetControllerReference(cms, dep, r.Scheme)
+	controllerutil.SetControllerReference(cr, dep, r.Scheme)
 	return dep
 }
 

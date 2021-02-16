@@ -21,7 +21,7 @@ func elasticsearchDeploymentName(elasticsearch *cachev1.Openedx) string {
 }
 
 func elasticsearchServiceName(elasticsearch *cachev1.Openedx) string {
-	return elasticsearch.Name + "-elasticsearch-service"
+	return "elasticsearch"
 }
 
 func elasticsearchAuthName() string {
@@ -52,6 +52,7 @@ func (r *OpenedxReconciler) elasticsearchDeployment(instance *cachev1.Openedx) *
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      elasticsearchDeploymentName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,

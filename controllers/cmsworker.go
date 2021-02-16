@@ -11,18 +11,19 @@ import (
 const cmsworkerImage = "docker.io/overhangio/openedx:10.4.0"
 const cmsworkerPort = 8000
 
-func cmsworkerDeploymentName(cmsworker *cachev1.Openedx) string {
-	return cmsworker.Name + "-cmsworker"
+func cmsworkerDeploymentName(cr *cachev1.Openedx) string {
+	return cr.Name + "-cmsworker"
 }
 
-func (r *OpenedxReconciler) cmsworkerDeployment(cmsworker *cachev1.Openedx) *appsv1.Deployment {
-	labels := labels(cmsworker, "cmsworker")
-	size := cmsworker.Spec.Size
+func (r *OpenedxReconciler) cmsworkerDeployment(cr *cachev1.Openedx) *appsv1.Deployment {
+	labels := labels(cr, "cmsworker")
+	size := cr.Spec.Size
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cmsworkerDeploymentName(cmsworker),
-			Namespace: cmsworker.Namespace,
+			Name:      cmsworkerDeploymentName(cr),
+			Namespace: cr.Namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,
@@ -114,6 +115,6 @@ func (r *OpenedxReconciler) cmsworkerDeployment(cmsworker *cachev1.Openedx) *app
 		},
 	}
 
-	controllerutil.SetControllerReference(cmsworker, dep, r.Scheme)
+	controllerutil.SetControllerReference(cr, dep, r.Scheme)
 	return dep
 }

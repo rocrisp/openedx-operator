@@ -21,7 +21,7 @@ func forumDeploymentName(instance *cachev1.Openedx) string {
 }
 
 func forumServiceName(instance *cachev1.Openedx) string {
-	return instance.Name + "-forum-service"
+	return "forum"
 }
 
 func forumAuthName() string {
@@ -66,6 +66,7 @@ func (r *OpenedxReconciler) forumDeployment(d *cachev1.Openedx) *appsv1.Deployme
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      forumDeploymentName(d),
 			Namespace: d.Namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,

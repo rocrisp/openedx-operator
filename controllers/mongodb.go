@@ -20,7 +20,7 @@ func mongodbDeploymentName(instance *cachev1.Openedx) string {
 }
 
 func mongodbServiceName(instance *cachev1.Openedx) string {
-	return instance.Name + "-mongodb-service"
+	return "mongodb"
 }
 
 func (r *OpenedxReconciler) mongodbDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
@@ -31,6 +31,7 @@ func (r *OpenedxReconciler) mongodbDeployment(instance *cachev1.Openedx) *appsv1
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      mongodbDeploymentName(instance),
 			Namespace: instance.Namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,
