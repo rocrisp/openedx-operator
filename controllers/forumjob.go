@@ -94,7 +94,7 @@ func newPodTemplateSpec(cr *cachev1.Openedx) corev1.PodTemplateSpec {
 	}
 }
 
-func (r *OpenedxReconciler) job1(instance *cachev1.Openedx) *batchv1.Job {
+func (r *OpenedxReconciler) forumJob(instance *cachev1.Openedx) *batchv1.Job {
 	job := newJob(instance)
 	job.Spec.Template = newPodTemplateSpec(instance)
 

@@ -276,10 +276,10 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	// result, err = r.ensureJob(req, instance, r.job1(instance))
-	// if result != nil {
-	// 	return *result, err
-	// }
+	result, err = r.ensureJob(req, instance, r.forumJob(instance))
+	if result != nil {
+		return *result, err
+	}
 
 	// == MINIO ============
 	//result, err = r.ensureDeployment(req, instance, r.minioDeployment(instance))
