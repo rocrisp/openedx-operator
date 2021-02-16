@@ -1,10 +1,14 @@
 package controllers
 
 import (
+	"context"
+
+	"github.com/prometheus/common/log"
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -50,6 +54,10 @@ func getArgoExportContainerEnv(cr *cachev1.Openedx) []corev1.EnvVar {
 		Name:  "MONGODB_PORT",
 		Value: "27017",
 	})
+	env = append(env, corev1.EnvVar{
+		Name:  "MONGOHQ_URL",
+		Value: "mongodb://$MONGODB_AUTH$MONGODB_HOST:$MONGODB_PORT/cs_comments_service",
+	})
 
 	return env
 }
@@ -70,7 +78,13 @@ func newPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 	pod := corev1.PodSpec{}
 
 	pod.Containers = []corev1.Container{{
-		Command:         getArgoExportCommand(cr),
+		Args: []string{
+			"sh",
+			"-e",
+			"-c",
+			"bundle exec rake search:initialize",
+			"bundle exec rake search:rebuild_index",
+		},
 		Env:             getArgoExportContainerEnv(cr),
 		Image:           "docker.io/overhangio/openedx-forum:10.4.0",
 		ImagePullPolicy: corev1.PullAlways,
@@ -100,4 +114,26 @@ func (r *OpenedxReconciler) forumJob(instance *cachev1.Openedx) *batchv1.Job {
 
 	controllerutil.SetControllerReference(instance, job, r.Scheme)
 	return job
+}
+
+func (r *OpenedxReconciler) isForumJobDone(instance *cachev1.Openedx) bool {
+
+	job := &batchv1.Job{}
+
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      forumjobName(instance),
+		Namespace: instance.Namespace,
+	}, job)
+
+	if err != nil {
+		log.Error(err, "forumjob not found")
+		return false
+	}
+
+	if job.Status.Succeeded > 0 {
+		return true
+	}
+
+	return false // Job not complete.
+
 }

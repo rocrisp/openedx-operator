@@ -344,7 +344,7 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if !lmsjobComplete {
 		// If lmsJob isn't complete, requeue the reconcile
 		// to run again after a delay
-		delay := time.Second * time.Duration(5)
+		delay := time.Second * time.Duration(15)
 
 		r.Log.Info(fmt.Sprintf("Lms Job isn't Complete, waiting for %s", delay))
 		return reconcile.Result{RequeueAfter: delay}, nil
@@ -356,10 +356,32 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	cmsjobComplete := r.isCmsJobDone(instance)
+
+	if !cmsjobComplete {
+		// If cmsJob isn't complete, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(15)
+
+		r.Log.Info(fmt.Sprintf("Cms Job isn't Complete, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
+	}
+
 	//== Forum Job ======
 	result, err = r.ensureJob(req, instance, r.forumJob(instance))
 	if result != nil {
 		return *result, err
+	}
+
+	forumjobComplete := r.isForumJobDone(instance)
+
+	if !forumjobComplete {
+		// If forumJob isn't complete, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(15)
+
+		r.Log.Info(fmt.Sprintf("Forum Job isn't Complete, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
 	}
 
 	// == MINIO ============

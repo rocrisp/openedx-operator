@@ -1,10 +1,13 @@
 package controllers
 
 import (
+	"context"
+	"github.com/prometheus/common/log"
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -119,4 +122,26 @@ func (r *OpenedxReconciler) cmsJob(instance *cachev1.Openedx) *batchv1.Job {
 
 	controllerutil.SetControllerReference(instance, job, r.Scheme)
 	return job
+}
+
+func (r *OpenedxReconciler) isCmsJobDone(instance *cachev1.Openedx) bool {
+
+	job := &batchv1.Job{}
+
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      cmsJobName(instance),
+		Namespace: instance.Namespace,
+	}, job)
+
+	if err != nil {
+		log.Error(err, "cmsjob not found")
+		return false
+	}
+
+	if job.Status.Succeeded > 0 {
+		return true
+	}
+
+	return false // Job not complete.
+
 }

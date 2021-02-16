@@ -131,9 +131,6 @@ func (r *OpenedxReconciler) isLmsJobDone(instance *cachev1.Openedx) bool {
 		return true
 	}
 
-	log.Info("Job Status is : ", job.Status.Succeeded, " Job name is : ", job.Name)
-	log.Info("Job Failed is : ", job.Status.Failed, " Job name is : ", job.Name)
-
 	return false // Job not complete.
 
 }

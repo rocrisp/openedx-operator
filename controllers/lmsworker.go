@@ -24,6 +24,7 @@ func (r *OpenedxReconciler) lmsworkerDeployment(lmsworker *cachev1.Openedx) *app
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      lmsworkerDeploymentName(lmsworker),
 			Namespace: lmsworker.Namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &size,
