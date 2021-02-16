@@ -62,7 +62,7 @@ func (r *OpenedxReconciler) mongodbDeployment(instance *cachev1.Openedx) *appsv1
 						Image: "docker.io/mongo:3.6.18",
 						Name:  "mongodb-server",
 						Ports: []corev1.ContainerPort{{
-							ContainerPort: 27017,
+							ContainerPort: mongodbPort,
 							Name:          "mongodb",
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
@@ -93,8 +93,8 @@ func (r *OpenedxReconciler) mongodbService(instance *cachev1.Openedx) *corev1.Se
 			Type:     "NodePort",
 			Ports: []corev1.ServicePort{{
 				Protocol:   corev1.ProtocolTCP,
-				Port:       80,
-				TargetPort: intstr.FromInt(nginxPort),
+				Port:       mongodbPort,
+				TargetPort: intstr.FromInt(mongodbPort),
 			}},
 		},
 	}

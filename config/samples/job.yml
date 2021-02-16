@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app.kubernetes.io/component: job
+    app.kubernetes.io/name: forum-job-20210208121125
+  name: forum-job-20210208121125
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      containers:
+      - args:
+        - sh
+        - -e
+        - -c
+        - 'export MONGOHQ_URL="mongodb://$MONGODB_AUTH$MONGODB_HOST:$MONGODB_PORT/cs_comments_service"
+
+
+          bundle exec rake search:initialize
+
+          bundle exec rake search:rebuild_index'
+        env:
+        - name: SEARCH_SERVER
+          value: http://elasticsearch:9200
+        - name: MONGODB_AUTH
+          value: ''
+        - name: MONGODB_HOST
+          value: mongodb
+        - name: MONGODB_PORT
+          value: '27017'
+        image: docker.io/overhangio/openedx-forum:10.4.1
+        name: forum
+      restartPolicy: Never
+  ttlSecondsAfterFinished: 3600
