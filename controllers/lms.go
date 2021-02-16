@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const lmsImage = "docker.io/overhangio/openedx:10.4.0"
+const lmsImage = "docker.io/overhangio/openedx:11.0.6"
 const lmsPort = 8000
 
 func lmsDeploymentName(lms *cachev1.Openedx) string {
