@@ -18,8 +18,8 @@ package controllers
 
 import (
 	"context"
-	// "fmt"
-	// "time"
+	"fmt"
+	"time"
 
 	"github.com/go-logr/logr"
 	// "github.com/prometheus/common/log"
@@ -95,18 +95,22 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if result != nil {
 		return *result, err
 	}
+
 	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("minio", "5Gi", instance))
 	if result != nil {
 		return *result, err
 	}
+
 	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("mongodb", "5Gi", instance))
 	if result != nil {
 		return *result, err
 	}
+
 	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("mysql", "5Gi", instance))
 	if result != nil {
 		return *result, err
 	}
+
 	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("rabbitmq", "1Gi", instance))
 	if result != nil {
 		return *result, err
@@ -201,11 +205,32 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if result != nil {
 		return *result, err
 	}
+	// cmsRunning := r.isCmsUp(instance)
+
+	// if !cmsRunning {
+	// 	// If nginx isn't running yet, requeue the reconcile
+	// 	// to run again after a delay
+	// 	delay := time.Second * time.Duration(5)
+
+	// 	log.Info(fmt.Sprintf("CMS isn't running, waiting for %s", delay))
+	// 	return reconcile.Result{RequeueAfter: delay}, nil
+	// }
 
 	// == ELASTICSEARCH ========
 	result, err = r.ensureDeployment(req, instance, r.elasticsearchDeployment(instance))
 	if result != nil {
 		return *result, err
+	}
+
+	elRunning := r.iselasticsearchUp(instance)
+
+	if !elRunning {
+		// If elasticsearch isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		r.Log.Info(fmt.Sprintf("Elasticsearch isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
 	}
 
 	// == FORUM ========
@@ -232,10 +257,32 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	memcachedRunning := r.isMemcachedUp(instance)
+
+	if !memcachedRunning {
+		// If Memcached isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		r.Log.Info(fmt.Sprintf("Memcached isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
+	}
+
 	// == MONGODB ========
 	result, err = r.ensureDeployment(req, instance, r.mongodbDeployment(instance))
 	if result != nil {
 		return *result, err
+	}
+
+	mongodbRunning := r.isMongodbUp(instance)
+
+	if !mongodbRunning {
+		// If Mongodb isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		r.Log.Info(fmt.Sprintf("MONGODB isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
 	}
 
 	// == MYSQL ========
@@ -244,10 +291,32 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	mysqlRunning := r.isMysqlUp(instance)
+
+	if !mysqlRunning {
+		// If mysql isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		r.Log.Info(fmt.Sprintf("Mysql isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
+	}
+
 	// == NGINX ========
 	result, err = r.ensureDeployment(req, instance, r.nginxDeployment(instance))
 	if result != nil {
 		return *result, err
+	}
+
+	nginxRunning := r.isNginxUp(instance)
+
+	if !nginxRunning {
+		// If nginx isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		r.Log.Info(fmt.Sprintf("NGINX isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
 	}
 
 	// == RABBITMQ ========
@@ -264,18 +333,30 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// == JOB =======
 
-	//== CMS Job ========
-	result, err = r.ensureJob(req, instance, r.cmsJob(instance))
-	if result != nil {
-		return *result, err
-	}
-
 	//== LMS Job ========
 	result, err = r.ensureJob(req, instance, r.lmsJob(instance))
 	if result != nil {
 		return *result, err
 	}
 
+	lmsjobComplete := r.isLmsJobDone(instance)
+
+	if !lmsjobComplete {
+		// If lmsJob isn't complete, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		r.Log.Info(fmt.Sprintf("Lms Job isn't Complete, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
+	}
+
+	//== CMS Job ========
+	result, err = r.ensureJob(req, instance, r.cmsJob(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	//== Forum Job ======
 	result, err = r.ensureJob(req, instance, r.forumJob(instance))
 	if result != nil {
 		return *result, err
@@ -292,61 +373,12 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	//	return *result, err
 	//}
 
-	// memcachedRunning := r.isMemcachedUp(instance)
-
-	// if !memcachedRunning {
-	// 	// If nginx isn't running yet, requeue the reconcile
-	// 	// to run again after a delay
-	// 	delay := time.Second * time.Duration(5)
-
-	// 	log.Info(fmt.Sprintf("NGINX isn't running, waiting for %s", delay))
-	// 	return reconcile.Result{RequeueAfter: delay}, nil
-	// }
-
-	// mongodbRunning := r.isMongodbUp(instance)
-
-	// if !mongodbRunning {
-	// 	// If nginx isn't running yet, requeue the reconcile
-	// 	// to run again after a delay
-	// 	delay := time.Second * time.Duration(5)
-
-	// 	log.Info(fmt.Sprintf("MONGODB isn't running, waiting for %s", delay))
-	// 	return reconcile.Result{RequeueAfter: delay}, nil
-	// }
-
-	// mysqlRunning := r.isMysqlUp(instance)
-
-	// if !mysqlRunning {
-	// 	// If nginx isn't running yet, requeue the reconcile
-	// 	// to run again after a delay
-	// 	delay := time.Second * time.Duration(5)
-
-	// 	log.Info(fmt.Sprintf("MYSQL isn't running, waiting for %s", delay))
-	// 	return reconcile.Result{RequeueAfter: delay}, nil
-	// }
-
-	// nginxRunning := r.isNginxUp(instance)
-
-	// if !nginxRunning {
-	// 	// If nginx isn't running yet, requeue the reconcile
-	// 	// to run again after a delay
-	// 	delay := time.Second * time.Duration(5)
-
-	// 	log.Info(fmt.Sprintf("NGINX isn't running, waiting for %s", delay))
-	// 	return reconcile.Result{RequeueAfter: delay}, nil
-	// }
-
 	// == INGRESS ==========
 
 	result, err = r.ensureIngress(req, instance, r.ingress("web", instance))
 	if result != nil {
 		return *result, err
 	}
-	// == ROUTE =======
-	//result, err = r.ensureRoute(req, instance, r.lmsRoute(instance))
-	//if result != nil {
-	//	return *result, err
-	//}
 
 	// == Finish ==========
 	// Everything went fine, don't requeue

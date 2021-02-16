@@ -109,7 +109,7 @@ func (r *OpenedxReconciler) isMongodbUp(instance *cachev1.Openedx) bool {
 	deployment := &appsv1.Deployment{}
 
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
-		Name:      nginxDeploymentName(instance),
+		Name:      mongodbDeploymentName(instance),
 		Namespace: instance.Namespace,
 	}, deployment)
 

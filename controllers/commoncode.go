@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 
-	routev1 "github.com/openshift/api/route/v1"
 	"github.com/prometheus/common/log"
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -230,41 +229,6 @@ func (r *OpenedxReconciler) ensureJob(request reconcile.Request,
 	} else if err != nil {
 		// Error that isn't due to the ConfigMap not existing
 		log.Error(err, "Failed to get Job")
-		return &reconcile.Result{}, err
-	}
-
-	return nil, nil
-}
-
-//See if route exist, create one if it doesn't already exist
-func (r *OpenedxReconciler) ensureRoute(request reconcile.Request,
-	instance *cachev1.Openedx,
-	rs *routev1.Route,
-) (*reconcile.Result, error) {
-	found := &routev1.Route{}
-	err := r.Client.Get(context.TODO(), types.NamespacedName{
-		Name:      rs.Name,
-		Namespace: openedxNamespace,
-	}, found)
-	if err != nil && errors.IsNotFound(err) {
-
-		// Create the route
-		log.Info("Creating a new Route. ", "Route.Namespace : ", rs.Namespace, " Route.Name : ", rs.Name)
-
-		rs.Namespace = openedxNamespace
-		err = r.Client.Create(context.TODO(), rs)
-
-		if err != nil {
-			// Creation failed
-			log.Error(err, "Failed to create new Route. ", " Route.Namespace : ", rs.Namespace, " Route.Name : ", rs.Name)
-			return &reconcile.Result{}, err
-		} else {
-			// Creation was successful
-			return nil, nil
-		}
-	} else if err != nil {
-		// Error that isn't due to the service not existing
-		log.Error(err, "Failed to get Route")
 		return &reconcile.Result{}, err
 	}
 

@@ -109,7 +109,7 @@ func (r *OpenedxReconciler) nginxService(instance *cachev1.Openedx) *corev1.Serv
 	return service
 }
 
-// Returns whether or not the MySQL deployment is running
+// Returns whether or not the MySQLNginx deployment is running
 func (r *OpenedxReconciler) isNginxUp(instance *cachev1.Openedx) bool {
 
 	deployment := &appsv1.Deployment{}

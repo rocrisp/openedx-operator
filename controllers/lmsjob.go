@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/prometheus/common/log"
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -108,4 +109,19 @@ func (r *OpenedxReconciler) lmsJob(instance *cachev1.Openedx) *batchv1.Job {
 
 	controllerutil.SetControllerReference(instance, job, r.Scheme)
 	return job
+}
+
+func (r *OpenedxReconciler) isLmsJobDone(instance *cachev1.Openedx) bool {
+
+	job := &batchv1.Job{}
+
+	if job.Status.Succeeded > 0 {
+
+		return true
+	}
+	log.Info("Job Status is : ", job.Status.Succeeded, " Job name is : ", job.Name)
+	log.Info("Job Failed is : ", job.Status.Failed, " Job name is : ", job.Name)
+
+	return false // Job not complete.
+
 }

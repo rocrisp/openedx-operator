@@ -85,7 +85,7 @@ func (r *OpenedxReconciler) memcachedService(instance *cachev1.Openedx) *corev1.
 	return service
 }
 
-// Returns whether or not the MySQL deployment is running
+// Returns whether or not the Memcached deployment is running
 func (r *OpenedxReconciler) isMemcachedUp(instance *cachev1.Openedx) bool {
 
 	deployment := &appsv1.Deployment{}
