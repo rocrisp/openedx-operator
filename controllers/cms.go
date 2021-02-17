@@ -1,16 +1,18 @@
 package controllers
 
 import (
+	"context"
+	"github.com/prometheus/common/log"
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	//"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const cmsImage = "docker.io/overhangio/openedx:11.0.6"
+const cmsImage = "docker.io/overhangio/openedx:11.2.0"
 const cmsPort = 8000
 
 func cmsDeploymentName(cr *cachev1.Openedx) string {
@@ -135,24 +137,24 @@ func (r *OpenedxReconciler) cmsService(instance *cachev1.Openedx) *corev1.Servic
 	return service
 }
 
-// Returns whether or not the cms deployment is running
-// func (r *OpenedxReconciler) isCmsUp(cr *cachev1.Openedx) bool {
+//Returns whether or not the cms deployment is running
+func (r *OpenedxReconciler) isCmsUp(cr *cachev1.Openedx) bool {
 
-// 	deployment := &appsv1.Deployment{}
+	deployment := &appsv1.Deployment{}
 
-// 	err := r.Client.Get(context.TODO(), types.NamespacedName{
-// 		Name:      cmsDeploymentName(cr),
-// 		Namespace: cr.Namespace,
-// 	}, deployment)
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      cmsDeploymentName(cr),
+		Namespace: cr.Namespace,
+	}, deployment)
 
-// 	if err != nil {
-// 		log.Error(err, "Deployment cms not found")
-// 		return false
-// 	}
+	if err != nil {
+		log.Error(err, "Deployment cms not found")
+		return false
+	}
 
-// 	if deployment.Status.ReadyReplicas == 1 {
-// 		return true
-// 	}
+	if deployment.Status.ReadyReplicas == 1 {
+		return true
+	}
 
-// 	return false
-// }
+	return false
+}

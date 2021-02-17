@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	// "github.com/prometheus/common/log"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -200,21 +199,33 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if result != nil {
 		return *result, err
 	}
+
+	cmsworkerRunning := r.isCmsworkerUp(instance)
+
+	if !cmsworkerRunning {
+		// If cmsworker isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		r.Log.Info(fmt.Sprintf("Cmsworker isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
+	}
+
 	// == CMS  ==========
 	result, err = r.ensureDeployment(req, instance, r.cmsDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
-	// cmsRunning := r.isCmsUp(instance)
+	cmsRunning := r.isCmsUp(instance)
 
-	// if !cmsRunning {
-	// 	// If nginx isn't running yet, requeue the reconcile
-	// 	// to run again after a delay
-	// 	delay := time.Second * time.Duration(5)
+	if !cmsRunning {
+		// If cms isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
 
-	// 	log.Info(fmt.Sprintf("CMS isn't running, waiting for %s", delay))
-	// 	return reconcile.Result{RequeueAfter: delay}, nil
-	// }
+		r.Log.Info(fmt.Sprintf("CMS isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
+	}
 
 	// == ELASTICSEARCH ========
 	result, err = r.ensureDeployment(req, instance, r.elasticsearchDeployment(instance))

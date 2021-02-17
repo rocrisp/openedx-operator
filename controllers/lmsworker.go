@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const lmsworkerImage = "docker.io/overhangio/openedx:11.0.6"
+const lmsworkerImage = "docker.io/overhangio/openedx:11.2.0"
 const lmsworkerPort = 8000
 const lmsworkerPod = "lmsworker"
 

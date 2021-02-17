@@ -49,7 +49,7 @@ func newCmsPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 			"migrate",
 		},
 		Env:             getCmsContainerEnv(cr),
-		Image:           "docker.io/overhangio/openedx:11.0.6",
+		Image:           "docker.io/overhangio/openedx:11.2.0",
 		ImagePullPolicy: corev1.PullAlways,
 		Name:            "cms",
 		VolumeMounts: []corev1.VolumeMount{
