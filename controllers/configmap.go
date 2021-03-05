@@ -19,7 +19,7 @@ func newConfigMap(instance *cachev1.Openedx) *corev1.ConfigMap {
 	}
 }
 
-func (r *OpenedxReconciler) ConfigMap1(instance *cachev1.Openedx) *corev1.ConfigMap {
+func (r *OpenedxReconciler) openedxConfig(instance *cachev1.Openedx) *corev1.ConfigMap {
 	cm := newConfigMap(instance)
 	cm.ObjectMeta.Name = "openedx-config" //Name the ConfigMap
 
@@ -31,7 +31,7 @@ func (r *OpenedxReconciler) ConfigMap1(instance *cachev1.Openedx) *corev1.Config
 	return cm
 }
 
-func (r *OpenedxReconciler) ConfigMap2(instance *cachev1.Openedx) *corev1.ConfigMap {
+func (r *OpenedxReconciler) openedxSettingsCmsConfig(instance *cachev1.Openedx) *corev1.ConfigMap {
 	cm := newConfigMap(instance)
 	cm.ObjectMeta.Name = "openedx-settings-cms" //Name the ConfigMap
 
@@ -45,7 +45,7 @@ func (r *OpenedxReconciler) ConfigMap2(instance *cachev1.Openedx) *corev1.Config
 	return cm
 }
 
-func (r *OpenedxReconciler) ConfigMap3(instance *cachev1.Openedx) *corev1.ConfigMap {
+func (r *OpenedxReconciler) openedxSettingsLmsConfig(instance *cachev1.Openedx) *corev1.ConfigMap {
 	cm := newConfigMap(instance)
 	cm.ObjectMeta.Name = "openedx-settings-lms" //Name the ConfigMap
 
@@ -58,7 +58,7 @@ func (r *OpenedxReconciler) ConfigMap3(instance *cachev1.Openedx) *corev1.Config
 	return cm
 }
 
-func (r *OpenedxReconciler) ConfigMap4(instance *cachev1.Openedx) *corev1.ConfigMap {
+func (r *OpenedxReconciler) nginxConfig(instance *cachev1.Openedx) *corev1.ConfigMap {
 	cm := newConfigMap(instance)
 	cm.ObjectMeta.Name = "nginx-config" //Name the ConfigMap
 
@@ -74,7 +74,7 @@ func (r *OpenedxReconciler) ConfigMap4(instance *cachev1.Openedx) *corev1.Config
 	return cm
 }
 
-func (r *OpenedxReconciler) ConfigMap5(instance *cachev1.Openedx) *corev1.ConfigMap {
+func (r *OpenedxReconciler) mysqlInitdbConfig(instance *cachev1.Openedx) *corev1.ConfigMap {
 	cm := newConfigMap(instance)
 	cm.ObjectMeta.Name = "mysql-initdb-config" //Name the ConfigMap
 
@@ -82,5 +82,27 @@ func (r *OpenedxReconciler) ConfigMap5(instance *cachev1.Openedx) *corev1.Config
 		cm.Data = make(map[string]string)
 	}
 	cm.Data["initdb.sql"] = "CREATE DATABASE IF NOT EXISTS openedx;\nGRANT ALL ON openedx.* TO \"openedx\"@\"%\" IDENTIFIED BY \"0yMvt69B\";"
+	return cm
+}
+
+func (r *OpenedxReconciler) redisConfig(instance *cachev1.Openedx) *corev1.ConfigMap {
+	cm := newConfigMap(instance)
+	cm.ObjectMeta.Name = "redis-config" //Name the ConfigMap
+
+	if cm.Data == nil {
+		cm.Data = make(map[string]string)
+	}
+	cm.Data["redis.conf"] = "# https://raw.githubusercontent.com/redis/redis/6.0/redis.conf\nport 6379\ntcp-backlog 511\ntimeout 0\ntcp-keepalive 300\ndaemonize no\nsupervised no\npidfile /var/run/redis_6379.pid\nloglevel notice\nlogfile \"\"\ndatabases 16\n################################ SNAPSHOTTING  ################################\n#\n# Save the DB on disk:\n#\n#   save <seconds> <changes>\nsave 900 1\nsave 300 10\nsave 60 10000\nstop-writes-on-bgsave-error yes\nrdbcompression yes\nrdbchecksum yes\ndir /openedx/redis/data/\ndbfilename dump.rdb\nrdb-del-sync-files no\n############################## APPEND ONLY MODE ###############################\n# http://redis.io/topics/persistence\nappendonly yes\nappendfilename \"appendonly.aof\"\nappendfsync everysec\nno-appendfsync-on-rewrite no\nauto-aof-rewrite-percentage 100\nauto-aof-rewrite-min-size 64mb\naof-load-truncated yes\naof-use-rdb-preamble yes"
+	return cm
+}
+
+func (r *OpenedxReconciler) caddyConfig(instance *cachev1.Openedx) *corev1.ConfigMap {
+	cm := newConfigMap(instance)
+	cm.ObjectMeta.Name = "caddy-config" //Name the ConfigMap
+
+	if cm.Data == nil {
+		cm.Data = make(map[string]string)
+	}
+	cm.Data["Caddyfile"] = "www.lms-openedx.apps.demo.coreostrain.me:80 {\nreverse_proxy nginx:80 \n}\npreview.www.lms-openedx.apps.demo.coreostrain.me:80 {\nreverse_proxy nginx:80\n}\nstudio.www.lms-openedx.apps.demo.coreostrain.me:80 {\nreverse_proxy nginx:80\n}\nreturn cm\n}"
 	return cm
 }

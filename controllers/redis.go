@@ -13,44 +13,24 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const sqlImage = "docker.io/mysql:5.6.49"
-const sqlPort = 3306
+const redisImage = "docker.io/redis:6.0.9"
+const redisPort = 6379
 
-func mysqlDeploymentName(instance *cachev1.Openedx) string {
-	return instance.Name + "-mysql"
+func redisDeploymentName(instance *cachev1.Openedx) string {
+	return instance.Name + "-redis"
 }
 
-func mysqlServiceName(instance *cachev1.Openedx) string {
-	return "mysql"
+func redisServiceName(instance *cachev1.Openedx) string {
+	return "redis"
 }
 
-func mysqlAuthName() string {
-	return "mysql-auth"
-}
-
-func (r *OpenedxReconciler) mysqlAuthSecret(instance *cachev1.Openedx) *corev1.Secret {
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      mysqlAuthName(),
-			Namespace: instance.Namespace,
-		},
-		Type: "Opaque",
-		StringData: map[string]string{
-			"username": "root",
-			"password": "cakephp",
-		},
-	}
-	controllerutil.SetControllerReference(instance, secret, r.Scheme)
-	return secret
-}
-
-func (r *OpenedxReconciler) mysqlDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
-	labels := labels(instance, "mysql")
+func (r *OpenedxReconciler) redisDeployment(instance *cachev1.Openedx) *appsv1.Deployment {
+	labels := labels(instance, "redis")
 	size := instance.Spec.Size
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      mysqlDeploymentName(instance),
+			Name:      redisDeploymentName(instance),
 			Namespace: instance.Namespace,
 			Labels:    labels,
 		},
@@ -69,47 +49,39 @@ func (r *OpenedxReconciler) mysqlDeployment(instance *cachev1.Openedx) *appsv1.D
 							Name: "data",
 							VolumeSource: corev1.VolumeSource{
 								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-									ClaimName: "mysql",
+									ClaimName: "redis",
 								},
 							},
 						}, {
-							Name: "mysql-initdb",
+							Name: "redisConfig",
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{
-										Name: "mysql-initdb-config",
+										Name: "redis-config",
 									},
 								},
 							},
 						},
 					},
-
 					Containers: []corev1.Container{{
 						Args: []string{
-							"mysqld",
-							"--character-set-server=utf8",
-							"--collation-server=utf8_general_ci",
+							"redis-server",
+							"/openedx/redis/config/redis.conf",
 						},
-						Image: sqlImage,
-						Name:  "mysql-server",
+						Image: redisImage,
+						Name:  redisServiceName(instance),
 						Ports: []corev1.ContainerPort{{
-							ContainerPort: sqlPort,
-							Name:          "mysql",
+							ContainerPort: redisPort,
+							Name:          "redis",
 						}},
 						VolumeMounts: []corev1.VolumeMount{
 							{
+								Name:      "config",
+								MountPath: "/openedx/redis/config/",
+							},
+							{
 								Name:      "data",
-								MountPath: "/var/lib/mysql",
-							},
-							{
-								Name:      "mysql-initdb",
-								MountPath: "/docker-entrypoint-initdb.d",
-							},
-						},
-						Env: []corev1.EnvVar{
-							{
-								Name:  "MYSQL_ROOT_PASSWORD",
-								Value: "mQh8ZJz4",
+								MountPath: "/openedx/redis/data",
 							},
 						},
 					}},
@@ -122,12 +94,12 @@ func (r *OpenedxReconciler) mysqlDeployment(instance *cachev1.Openedx) *appsv1.D
 	return deployment
 }
 
-func (r *OpenedxReconciler) mysqlService(instance *cachev1.Openedx) *corev1.Service {
-	labels := labels(instance, "mysql")
+func (r *OpenedxReconciler) redisService(instance *cachev1.Openedx) *corev1.Service {
+	labels := labels(instance, "redis")
 
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      mysqlServiceName(instance),
+			Name:      redisServiceName(instance),
 			Namespace: instance.Namespace,
 			Labels:    labels,
 		},
@@ -135,8 +107,9 @@ func (r *OpenedxReconciler) mysqlService(instance *cachev1.Openedx) *corev1.Serv
 			Selector: labels,
 			Type:     "NodePort",
 			Ports: []corev1.ServicePort{{
-				Port:       sqlPort,
-				TargetPort: intstr.FromInt(sqlPort),
+				Protocol:   corev1.ProtocolTCP,
+				Port:       redisPort,
+				TargetPort: intstr.FromInt(redisPort),
 			}},
 		},
 	}
@@ -145,17 +118,18 @@ func (r *OpenedxReconciler) mysqlService(instance *cachev1.Openedx) *corev1.Serv
 	return service
 }
 
-// Returns whether or not the MySQL deployment is running
-func (r *OpenedxReconciler) isMysqlUp(instance *cachev1.Openedx) bool {
+// Returns whether or not the Memcached deployment is running
+func (r *OpenedxReconciler) isRedisdUp(instance *cachev1.Openedx) bool {
+
 	deployment := &appsv1.Deployment{}
 
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
-		Name:      mysqlDeploymentName(instance),
+		Name:      redisDeploymentName(instance),
 		Namespace: instance.Namespace,
 	}, deployment)
 
 	if err != nil {
-		log.Error(err, "Deployment mysql not found")
+		log.Error(err, "Deployment Redis not found")
 		return false
 	}
 

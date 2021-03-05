@@ -95,7 +95,7 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("minio", "5Gi", instance))
+	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("caddy", "1Gi", instance))
 	if result != nil {
 		return *result, err
 	}
@@ -110,34 +110,44 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("rabbitmq", "1Gi", instance))
+	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("redis", "1Gi", instance))
 	if result != nil {
 		return *result, err
 	}
 
 	// == ConfigMap ========
 
-	result, err = r.ensureConfigMap(req, instance, r.ConfigMap1(instance))
+	result, err = r.ensureConfigMap(req, instance, r.openedxConfig(instance))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureConfigMap(req, instance, r.ConfigMap2(instance))
+	result, err = r.ensureConfigMap(req, instance, r.openedxSettingsCmsConfig(instance))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureConfigMap(req, instance, r.ConfigMap3(instance))
+	result, err = r.ensureConfigMap(req, instance, r.openedxSettingsLmsConfig(instance))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureConfigMap(req, instance, r.ConfigMap4(instance))
+	result, err = r.ensureConfigMap(req, instance, r.nginxConfig(instance))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureConfigMap(req, instance, r.ConfigMap5(instance))
+	result, err = r.ensureConfigMap(req, instance, r.mysqlInitdbConfig(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureConfigMap(req, instance, r.caddyConfig(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureConfigMap(req, instance, r.redisConfig(instance))
 	if result != nil {
 		return *result, err
 	}
@@ -164,7 +174,7 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.memcachedService(instance))
+	result, err = r.ensureService(req, instance, r.redisService(instance))
 	if result != nil {
 		return *result, err
 	}
@@ -184,7 +194,7 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.rabbitmqService(instance))
+	result, err = r.ensureService(req, instance, r.caddyService(instance))
 	if result != nil {
 		return *result, err
 	}
@@ -262,20 +272,20 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	// == MEMCACHED ========
-	result, err = r.ensureDeployment(req, instance, r.memcachedDeployment(instance))
+	// == REDIS ========
+	result, err = r.ensureDeployment(req, instance, r.redisDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
 
-	memcachedRunning := r.isMemcachedUp(instance)
+	redisRunning := r.isRedisdUp(instance)
 
-	if !memcachedRunning {
-		// If Memcached isn't running yet, requeue the reconcile
+	if !redisRunning {
+		// If redis isn't running yet, requeue the reconcile
 		// to run again after a delay
 		delay := time.Second * time.Duration(5)
 
-		r.Log.Info(fmt.Sprintf("Memcached isn't running, waiting for %s", delay))
+		r.Log.Info(fmt.Sprintf("redis isn't running, waiting for %s", delay))
 		return reconcile.Result{RequeueAfter: delay}, nil
 	}
 
@@ -330,8 +340,8 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return reconcile.Result{RequeueAfter: delay}, nil
 	}
 
-	// == RABBITMQ ========
-	result, err = r.ensureDeployment(req, instance, r.rabbitmqDeployment(instance))
+	// == CADDY ========
+	result, err = r.ensureDeployment(req, instance, r.caddyDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
@@ -394,17 +404,6 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		r.Log.Info(fmt.Sprintf("Forum Job isn't Complete, waiting for %s", delay))
 		return reconcile.Result{RequeueAfter: delay}, nil
 	}
-
-	// == MINIO ============
-	//result, err = r.ensureDeployment(req, instance, r.minioDeployment(instance))
-	//if result != nil {
-	//	return *result, err
-	//}
-
-	//result, err = r.ensureService(req, instance, r.minioService(instance))
-	//if result != nil {
-	//	return *result, err
-	//}
 
 	// == INGRESS ==========
 
