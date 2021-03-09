@@ -53,7 +53,7 @@ func (r *OpenedxReconciler) redisDeployment(instance *cachev1.Openedx) *appsv1.D
 								},
 							},
 						}, {
-							Name: "redisConfig",
+							Name: "redis-config",
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{
@@ -68,15 +68,16 @@ func (r *OpenedxReconciler) redisDeployment(instance *cachev1.Openedx) *appsv1.D
 							"redis-server",
 							"/openedx/redis/config/redis.conf",
 						},
-						Image: redisImage,
-						Name:  redisServiceName(instance),
+						WorkingDir: "/openedx/redis/data",
+						Image:      redisImage,
+						Name:       redisServiceName(instance),
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: redisPort,
 							Name:          "redis",
 						}},
 						VolumeMounts: []corev1.VolumeMount{
 							{
-								Name:      "config",
+								Name:      "redis-config",
 								MountPath: "/openedx/redis/config/",
 							},
 							{

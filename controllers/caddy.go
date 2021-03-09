@@ -1,10 +1,13 @@
 package controllers
 
 import (
+	"context"
+	"github.com/prometheus/common/log"
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -48,7 +51,7 @@ func (r *OpenedxReconciler) caddyDeployment(instance *cachev1.Openedx) *appsv1.D
 								},
 							},
 						}, {
-							Name: "caddyConfig",
+							Name: "caddy-config",
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{
@@ -73,7 +76,7 @@ func (r *OpenedxReconciler) caddyDeployment(instance *cachev1.Openedx) *appsv1.D
 						},
 						VolumeMounts: []corev1.VolumeMount{
 							{
-								Name:      "config",
+								Name:      "caddy-config",
 								MountPath: "/etc/caddy/",
 							},
 							{
@@ -120,4 +123,25 @@ func (r *OpenedxReconciler) caddyService(instance *cachev1.Openedx) *corev1.Serv
 
 	controllerutil.SetControllerReference(instance, service, r.Scheme)
 	return service
+}
+
+// Returns whether or not the caddy deployment is running
+func (r *OpenedxReconciler) isCaddyUp(instance *cachev1.Openedx) bool {
+	deployment := &appsv1.Deployment{}
+
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      caddyDeploymentName(instance),
+		Namespace: instance.Namespace,
+	}, deployment)
+
+	if err != nil {
+		log.Error(err, "Deployment caddt not found\n")
+		return false
+	}
+
+	if deployment.Status.ReadyReplicas == 1 {
+		return true
+	}
+
+	return false
 }

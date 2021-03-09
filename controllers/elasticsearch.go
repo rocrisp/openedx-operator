@@ -65,7 +65,7 @@ func (r *OpenedxReconciler) elasticsearchDeployment(instance *cachev1.Openedx) *
 				},
 				Spec: corev1.PodSpec{
 					Volumes: []corev1.Volume{{
-						Name: "elasticsearch-data",
+						Name: "data",
 						VolumeSource: corev1.VolumeSource{
 							PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 								ClaimName: "elasticsearch",
@@ -80,7 +80,7 @@ func (r *OpenedxReconciler) elasticsearchDeployment(instance *cachev1.Openedx) *
 							Name:          "elasticsearch",
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
-							Name:      "elasticsearch-data",
+							Name:      "data",
 							MountPath: "/usr/share/elasticsearch/data",
 						}},
 						Env: []corev1.EnvVar{

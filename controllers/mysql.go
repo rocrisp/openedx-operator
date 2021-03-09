@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const sqlImage = "docker.io/mysql:5.6.49"
+const sqlImage = "docker.io/mysql:5.7.32"
 const sqlPort = 3306
 
 func mysqlDeploymentName(instance *cachev1.Openedx) string {
@@ -89,6 +89,7 @@ func (r *OpenedxReconciler) mysqlDeployment(instance *cachev1.Openedx) *appsv1.D
 							"mysqld",
 							"--character-set-server=utf8",
 							"--collation-server=utf8_general_ci",
+							"--ignore-db-dir=lost+found",
 						},
 						Image: sqlImage,
 						Name:  "mysql-server",

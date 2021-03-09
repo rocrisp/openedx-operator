@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const lmsworkerImage = "docker.io/overhangio/openedx:11.2.0"
+const lmsworkerImage = "docker.io/overhangio/openedx:11.2.1"
 const lmsworkerPort = 8000
 const lmsworkerPod = "lmsworker"
 
@@ -38,14 +38,12 @@ func (r *OpenedxReconciler) lmsworkerDeployment(lmsworker *cachev1.Openedx) *app
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
 						Args: []string{
-							"./manage.py",
-							"lms",
 							"celery",
 							"worker",
+							"--app=cms.celery",
 							"--loglevel=info",
 							"--hostname=edx.lms.core.default.%%h",
-							"--maxtasksperchild",
-							"100",
+							"--maxtasksperchild", "100",
 							"--exclude-queues=edx.cms.core.default",
 						},
 						Image: lmsworkerImage,

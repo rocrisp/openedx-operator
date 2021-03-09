@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const cmsworkerImage = "docker.io/overhangio/openedx:11.2.0"
+const cmsworkerImage = "docker.io/overhangio/openedx:11.2.1"
 const cmsworkerPort = 8000
 
 func cmsworkerDeploymentName(cr *cachev1.Openedx) string {
@@ -40,10 +40,9 @@ func (r *OpenedxReconciler) cmsworkerDeployment(cr *cachev1.Openedx) *appsv1.Dep
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
 						Args: []string{
-							"./manage.py",
-							"cms",
 							"celery",
 							"worker",
+							"--app=cms.celery",
 							"--loglevel=info",
 							"--hostname=edx.cms.core.default.%%h",
 							"--maxtasksperchild",

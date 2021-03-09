@@ -204,38 +204,55 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	// == CADDY ========
+	result, err = r.ensureDeployment(req, instance, r.caddyDeployment(instance))
+	if result != nil {
+		return *result, err
+	}
+
+	// caddyRunning := r.isCaddyUp(instance)
+
+	// if !caddyRunning {
+	// 	// If caddy isn't running yet, requeue the reconcile
+	// 	// to run again after a delay
+	// 	delay := time.Second * time.Duration(5)
+
+	// 	r.Log.Info(fmt.Sprintf("Caddy isn't running, waiting for %s", delay))
+	// 	return reconcile.Result{RequeueAfter: delay}, nil
+	// }
+
 	// == CMS WORKER ==========
 	result, err = r.ensureDeployment(req, instance, r.cmsworkerDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
 
-	cmsworkerRunning := r.isCmsworkerUp(instance)
+	// cmsworkerRunning := r.isCmsworkerUp(instance)
 
-	if !cmsworkerRunning {
-		// If cmsworker isn't running yet, requeue the reconcile
-		// to run again after a delay
-		delay := time.Second * time.Duration(5)
+	// if !cmsworkerRunning {
+	// 	// If cmsworker isn't running yet, requeue the reconcile
+	// 	// to run again after a delay
+	// 	delay := time.Second * time.Duration(5)
 
-		r.Log.Info(fmt.Sprintf("Cmsworker isn't running, waiting for %s", delay))
-		return reconcile.Result{RequeueAfter: delay}, nil
-	}
+	// 	r.Log.Info(fmt.Sprintf("Cmsworker isn't running, waiting for %s", delay))
+	// 	return reconcile.Result{RequeueAfter: delay}, nil
+	// }
 
 	// == CMS  ==========
 	result, err = r.ensureDeployment(req, instance, r.cmsDeployment(instance))
 	if result != nil {
 		return *result, err
 	}
-	cmsRunning := r.isCmsUp(instance)
+	// cmsRunning := r.isCmsUp(instance)
 
-	if !cmsRunning {
-		// If cms isn't running yet, requeue the reconcile
-		// to run again after a delay
-		delay := time.Second * time.Duration(5)
+	// if !cmsRunning {
+	// 	// If cms isn't running yet, requeue the reconcile
+	// 	// to run again after a delay
+	// 	delay := time.Second * time.Duration(5)
 
-		r.Log.Info(fmt.Sprintf("CMS isn't running, waiting for %s", delay))
-		return reconcile.Result{RequeueAfter: delay}, nil
-	}
+	// 	r.Log.Info(fmt.Sprintf("CMS isn't running, waiting for %s", delay))
+	// 	return reconcile.Result{RequeueAfter: delay}, nil
+	// }
 
 	// == ELASTICSEARCH ========
 	result, err = r.ensureDeployment(req, instance, r.elasticsearchDeployment(instance))
@@ -243,16 +260,16 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	elRunning := r.iselasticsearchUp(instance)
+	// elRunning := r.iselasticsearchUp(instance)
 
-	if !elRunning {
-		// If elasticsearch isn't running yet, requeue the reconcile
-		// to run again after a delay
-		delay := time.Second * time.Duration(5)
+	// if !elRunning {
+	// 	// If elasticsearch isn't running yet, requeue the reconcile
+	// 	// to run again after a delay
+	// 	delay := time.Second * time.Duration(5)
 
-		r.Log.Info(fmt.Sprintf("Elasticsearch isn't running, waiting for %s", delay))
-		return reconcile.Result{RequeueAfter: delay}, nil
-	}
+	// 	r.Log.Info(fmt.Sprintf("Elasticsearch isn't running, waiting for %s", delay))
+	// 	return reconcile.Result{RequeueAfter: delay}, nil
+	// }
 
 	// == FORUM ========
 	result, err = r.ensureDeployment(req, instance, r.forumDeployment(instance))
@@ -278,16 +295,16 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	redisRunning := r.isRedisdUp(instance)
+	// redisRunning := r.isRedisdUp(instance)
 
-	if !redisRunning {
-		// If redis isn't running yet, requeue the reconcile
-		// to run again after a delay
-		delay := time.Second * time.Duration(5)
+	// if !redisRunning {
+	// 	// If redis isn't running yet, requeue the reconcile
+	// 	// to run again after a delay
+	// 	delay := time.Second * time.Duration(5)
 
-		r.Log.Info(fmt.Sprintf("redis isn't running, waiting for %s", delay))
-		return reconcile.Result{RequeueAfter: delay}, nil
-	}
+	// 	r.Log.Info(fmt.Sprintf("redis isn't running, waiting for %s", delay))
+	// 	return reconcile.Result{RequeueAfter: delay}, nil
+	// }
 
 	// == MONGODB ========
 	result, err = r.ensureDeployment(req, instance, r.mongodbDeployment(instance))
@@ -295,16 +312,16 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	mongodbRunning := r.isMongodbUp(instance)
+	// mongodbRunning := r.isMongodbUp(instance)
 
-	if !mongodbRunning {
-		// If Mongodb isn't running yet, requeue the reconcile
-		// to run again after a delay
-		delay := time.Second * time.Duration(5)
+	// if !mongodbRunning {
+	// 	// If Mongodb isn't running yet, requeue the reconcile
+	// 	// to run again after a delay
+	// 	delay := time.Second * time.Duration(5)
 
-		r.Log.Info(fmt.Sprintf("MONGODB isn't running, waiting for %s", delay))
-		return reconcile.Result{RequeueAfter: delay}, nil
-	}
+	// 	r.Log.Info(fmt.Sprintf("MONGODB isn't running, waiting for %s", delay))
+	// 	return reconcile.Result{RequeueAfter: delay}, nil
+	// }
 
 	// == MYSQL ========
 	result, err = r.ensureDeployment(req, instance, r.mysqlDeployment(instance))
@@ -312,16 +329,16 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	mysqlRunning := r.isMysqlUp(instance)
+	// mysqlRunning := r.isMysqlUp(instance)
 
-	if !mysqlRunning {
-		// If mysql isn't running yet, requeue the reconcile
-		// to run again after a delay
-		delay := time.Second * time.Duration(5)
+	// if !mysqlRunning {
+	// 	// If mysql isn't running yet, requeue the reconcile
+	// 	// to run again after a delay
+	// 	delay := time.Second * time.Duration(5)
 
-		r.Log.Info(fmt.Sprintf("Mysql isn't running, waiting for %s", delay))
-		return reconcile.Result{RequeueAfter: delay}, nil
-	}
+	// 	r.Log.Info(fmt.Sprintf("Mysql isn't running, waiting for %s", delay))
+	// 	return reconcile.Result{RequeueAfter: delay}, nil
+	// }
 
 	// == NGINX ========
 	result, err = r.ensureDeployment(req, instance, r.nginxDeployment(instance))
@@ -329,22 +346,16 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
-	nginxRunning := r.isNginxUp(instance)
+	// nginxRunning := r.isNginxUp(instance)
 
-	if !nginxRunning {
-		// If nginx isn't running yet, requeue the reconcile
-		// to run again after a delay
-		delay := time.Second * time.Duration(5)
+	// if !nginxRunning {
+	// 	// If nginx isn't running yet, requeue the reconcile
+	// 	// to run again after a delay
+	// 	delay := time.Second * time.Duration(5)
 
-		r.Log.Info(fmt.Sprintf("NGINX isn't running, waiting for %s", delay))
-		return reconcile.Result{RequeueAfter: delay}, nil
-	}
-
-	// == CADDY ========
-	result, err = r.ensureDeployment(req, instance, r.caddyDeployment(instance))
-	if result != nil {
-		return *result, err
-	}
+	// 	r.Log.Info(fmt.Sprintf("NGINX isn't running, waiting for %s", delay))
+	// 	return reconcile.Result{RequeueAfter: delay}, nil
+	// }
 
 	// == SMTP ========
 	result, err = r.ensureDeployment(req, instance, r.smtpDeployment(instance))

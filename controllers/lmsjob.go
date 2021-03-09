@@ -38,7 +38,7 @@ func newLmsPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 			"lms",
 			"migrate",
 		},
-		Image:           "docker.io/overhangio/openedx:11.2.0",
+		Image:           "docker.io/overhangio/openedx:11.2.1",
 		ImagePullPolicy: corev1.PullAlways,
 		Name:            "lms",
 		VolumeMounts: []corev1.VolumeMount{
@@ -101,7 +101,7 @@ func newLmsPodTemplateSpec(cr *cachev1.Openedx) corev1.PodTemplateSpec {
 			Namespace: cr.Namespace,
 			Labels:    labels,
 		},
-		Spec: newCmsPodSpec(cr),
+		Spec: newLmsPodSpec(cr),
 	}
 }
 
