@@ -5,6 +5,7 @@ import (
 
 	"github.com/prometheus/common/log"
 	cachev1 "github.com/rocrisp/openedx-operator/api/v1"
+	"github.com/rocrisp/openedx-operator/common"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -296,4 +297,22 @@ func labels(instance *cachev1.Openedx, app string) map[string]string {
 		"stage":      "dev",
 		"release":    "POC",
 	}
+}
+
+// getOpenedxLmsUrlName will return cr for lmssitename.
+func getOpenedxLmsUrlName(cr *cachev1.Openedx) string {
+	lmsSiteName := common.OpenedxDefaultLmsSiteName
+	if len(cr.Spec.LmsSiteName) > 0 {
+		lmsSiteName = cr.Spec.LmsSiteName
+	}
+	return lmsSiteName
+}
+
+// getOpenedxCmsUrlName will return cr for cmssitename.
+func getOpenedxCmsUrlName(cr *cachev1.Openedx) string {
+	cmsSiteName := common.OpenedxDefaultStudioSiteName
+	if len(cr.Spec.StudioSiteName) > 0 {
+		cmsSiteName = cr.Spec.StudioSiteName
+	}
+	return cmsSiteName
 }

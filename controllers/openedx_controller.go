@@ -56,9 +56,9 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("openedx", req.NamespacedName)
 
 	// Fetch the Openedx instance
-	instance := &cachev1.Openedx{}
+	openedx := &cachev1.Openedx{}
 
-	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
+	err := r.Client.Get(context.TODO(), req.NamespacedName, openedx)
 
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -72,7 +72,7 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 	r.Log.Info("This operator only works with openedx namespace")
 
-	namespaceName := instance.Name
+	namespaceName := openedx.Name
 	if namespaceName == "openedx" {
 		r.Log.Info("Using openedx namespace")
 	} else {
@@ -83,134 +83,134 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// == namespace ======================
 
-	result, err = r.ensureNamespace(req, instance, r.namespace(instance))
+	result, err = r.ensureNamespace(req, openedx, r.namespace(openedx))
 	if result != nil {
 		return *result, err
 	}
 
 	// == Persistent Volume Claim ========
 
-	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("elasticsearch", "2Gi", instance))
+	result, err = r.ensurePVC(req, openedx, r.persistencevolumeclaim("elasticsearch", "2Gi", openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("caddy", "1Gi", instance))
+	result, err = r.ensurePVC(req, openedx, r.persistencevolumeclaim("caddy", "1Gi", openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("mongodb", "5Gi", instance))
+	result, err = r.ensurePVC(req, openedx, r.persistencevolumeclaim("mongodb", "5Gi", openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("mysql", "5Gi", instance))
+	result, err = r.ensurePVC(req, openedx, r.persistencevolumeclaim("mysql", "5Gi", openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensurePVC(req, instance, r.persistencevolumeclaim("redis", "1Gi", instance))
+	result, err = r.ensurePVC(req, openedx, r.persistencevolumeclaim("redis", "1Gi", openedx))
 	if result != nil {
 		return *result, err
 	}
 
 	// == ConfigMap ========
 
-	result, err = r.ensureConfigMap(req, instance, r.openedxConfig(instance))
+	result, err = r.ensureConfigMap(req, openedx, r.openedxConfig(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureConfigMap(req, instance, r.openedxSettingsCmsConfig(instance))
+	result, err = r.ensureConfigMap(req, openedx, r.openedxSettingsCmsConfig(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureConfigMap(req, instance, r.openedxSettingsLmsConfig(instance))
+	result, err = r.ensureConfigMap(req, openedx, r.openedxSettingsLmsConfig(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureConfigMap(req, instance, r.nginxConfig(instance))
+	result, err = r.ensureConfigMap(req, openedx, r.nginxConfig(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureConfigMap(req, instance, r.mysqlInitdbConfig(instance))
+	result, err = r.ensureConfigMap(req, openedx, r.mysqlInitdbConfig(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureConfigMap(req, instance, r.caddyConfig(instance))
+	result, err = r.ensureConfigMap(req, openedx, r.caddyConfig(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureConfigMap(req, instance, r.redisConfig(instance))
+	result, err = r.ensureConfigMap(req, openedx, r.redisConfig(openedx))
 	if result != nil {
 		return *result, err
 	}
 
 	// == SERVICE ========
 
-	result, err = r.ensureService(req, instance, r.cmsService(instance))
+	result, err = r.ensureService(req, openedx, r.cmsService(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.elasticsearchService(instance))
+	result, err = r.ensureService(req, openedx, r.elasticsearchService(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.forumService(instance))
+	result, err = r.ensureService(req, openedx, r.forumService(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.lmsService(instance))
+	result, err = r.ensureService(req, openedx, r.lmsService(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.redisService(instance))
+	result, err = r.ensureService(req, openedx, r.redisService(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.mongodbService(instance))
+	result, err = r.ensureService(req, openedx, r.mongodbService(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.mysqlService(instance))
+	result, err = r.ensureService(req, openedx, r.mysqlService(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.nginxService(instance))
+	result, err = r.ensureService(req, openedx, r.nginxService(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.caddyService(instance))
+	result, err = r.ensureService(req, openedx, r.caddyService(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	result, err = r.ensureService(req, instance, r.smtpService(instance))
+	result, err = r.ensureService(req, openedx, r.smtpService(openedx))
 	if result != nil {
 		return *result, err
 	}
 
 	// == CADDY ========
-	result, err = r.ensureDeployment(req, instance, r.caddyDeployment(instance))
+	result, err = r.ensureDeployment(req, openedx, r.caddyDeployment(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	// caddyRunning := r.isCaddyUp(instance)
+	// caddyRunning := r.isCaddyUp(openedx)
 
 	// if !caddyRunning {
 	// 	// If caddy isn't running yet, requeue the reconcile
@@ -222,12 +222,12 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// }
 
 	// == CMS WORKER ==========
-	result, err = r.ensureDeployment(req, instance, r.cmsworkerDeployment(instance))
+	result, err = r.ensureDeployment(req, openedx, r.cmsworkerDeployment(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	// cmsworkerRunning := r.isCmsworkerUp(instance)
+	// cmsworkerRunning := r.isCmsworkerUp(openedx)
 
 	// if !cmsworkerRunning {
 	// 	// If cmsworker isn't running yet, requeue the reconcile
@@ -239,11 +239,11 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// }
 
 	// == CMS  ==========
-	result, err = r.ensureDeployment(req, instance, r.cmsDeployment(instance))
+	result, err = r.ensureDeployment(req, openedx, r.cmsDeployment(openedx))
 	if result != nil {
 		return *result, err
 	}
-	// cmsRunning := r.isCmsUp(instance)
+	// cmsRunning := r.isCmsUp(openedx)
 
 	// if !cmsRunning {
 	// 	// If cms isn't running yet, requeue the reconcile
@@ -255,12 +255,12 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// }
 
 	// == ELASTICSEARCH ========
-	result, err = r.ensureDeployment(req, instance, r.elasticsearchDeployment(instance))
+	result, err = r.ensureDeployment(req, openedx, r.elasticsearchDeployment(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	// elRunning := r.iselasticsearchUp(instance)
+	// elRunning := r.iselasticsearchUp(openedx)
 
 	// if !elRunning {
 	// 	// If elasticsearch isn't running yet, requeue the reconcile
@@ -272,30 +272,30 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// }
 
 	// == FORUM ========
-	result, err = r.ensureDeployment(req, instance, r.forumDeployment(instance))
+	result, err = r.ensureDeployment(req, openedx, r.forumDeployment(openedx))
 	if result != nil {
 		return *result, err
 	}
 
 	// == LMS WORKER ==========
-	result, err = r.ensureDeployment(req, instance, r.lmsworkerDeployment(instance))
+	result, err = r.ensureDeployment(req, openedx, r.lmsworkerDeployment(openedx))
 	if result != nil {
 		return *result, err
 	}
 	// == LMS  ==========
 
-	result, err = r.ensureDeployment(req, instance, r.lmsDeployment(instance))
+	result, err = r.ensureDeployment(req, openedx, r.lmsDeployment(openedx))
 	if result != nil {
 		return *result, err
 	}
 
 	// == REDIS ========
-	result, err = r.ensureDeployment(req, instance, r.redisDeployment(instance))
+	result, err = r.ensureDeployment(req, openedx, r.redisDeployment(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	// redisRunning := r.isRedisdUp(instance)
+	// redisRunning := r.isRedisdUp(openedx)
 
 	// if !redisRunning {
 	// 	// If redis isn't running yet, requeue the reconcile
@@ -307,12 +307,12 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// }
 
 	// == MONGODB ========
-	result, err = r.ensureDeployment(req, instance, r.mongodbDeployment(instance))
+	result, err = r.ensureDeployment(req, openedx, r.mongodbDeployment(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	// mongodbRunning := r.isMongodbUp(instance)
+	// mongodbRunning := r.isMongodbUp(openedx)
 
 	// if !mongodbRunning {
 	// 	// If Mongodb isn't running yet, requeue the reconcile
@@ -324,12 +324,12 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// }
 
 	// == MYSQL ========
-	result, err = r.ensureDeployment(req, instance, r.mysqlDeployment(instance))
+	result, err = r.ensureDeployment(req, openedx, r.mysqlDeployment(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	// mysqlRunning := r.isMysqlUp(instance)
+	// mysqlRunning := r.isMysqlUp(openedx)
 
 	// if !mysqlRunning {
 	// 	// If mysql isn't running yet, requeue the reconcile
@@ -341,12 +341,12 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// }
 
 	// == NGINX ========
-	result, err = r.ensureDeployment(req, instance, r.nginxDeployment(instance))
+	result, err = r.ensureDeployment(req, openedx, r.nginxDeployment(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	// nginxRunning := r.isNginxUp(instance)
+	// nginxRunning := r.isNginxUp(openedx)
 
 	// if !nginxRunning {
 	// 	// If nginx isn't running yet, requeue the reconcile
@@ -358,7 +358,7 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// }
 
 	// == SMTP ========
-	result, err = r.ensureDeployment(req, instance, r.smtpDeployment(instance))
+	result, err = r.ensureDeployment(req, openedx, r.smtpDeployment(openedx))
 	if result != nil {
 		return *result, err
 	}
@@ -366,12 +366,12 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// == JOB =======
 
 	//== LMS Job ========
-	result, err = r.ensureJob(req, instance, r.lmsJob(instance))
+	result, err = r.ensureJob(req, openedx, r.lmsJob(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	lmsjobComplete := r.isLmsJobDone(instance)
+	lmsjobComplete := r.isLmsJobDone(openedx)
 
 	if !lmsjobComplete {
 		// If lmsJob isn't complete, requeue the reconcile
@@ -383,12 +383,12 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	//== CMS Job ========
-	result, err = r.ensureJob(req, instance, r.cmsJob(instance))
+	result, err = r.ensureJob(req, openedx, r.cmsJob(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	cmsjobComplete := r.isCmsJobDone(instance)
+	cmsjobComplete := r.isCmsJobDone(openedx)
 
 	if !cmsjobComplete {
 		// If cmsJob isn't complete, requeue the reconcile
@@ -400,12 +400,12 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	//== Forum Job ======
-	result, err = r.ensureJob(req, instance, r.forumJob(instance))
+	result, err = r.ensureJob(req, openedx, r.forumJob(openedx))
 	if result != nil {
 		return *result, err
 	}
 
-	forumjobComplete := r.isForumJobDone(instance)
+	forumjobComplete := r.isForumJobDone(openedx)
 
 	if !forumjobComplete {
 		// If forumJob isn't complete, requeue the reconcile
@@ -418,7 +418,7 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// == INGRESS ==========
 
-	result, err = r.ensureIngress(req, instance, r.ingress("web", instance))
+	result, err = r.ensureIngress(req, openedx, r.ingress("web", openedx))
 	if result != nil {
 		return *result, err
 	}

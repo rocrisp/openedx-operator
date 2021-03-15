@@ -25,10 +25,13 @@ func newIngress(name string, cr *cachev1.Openedx) *extv1beta1.Ingress {
 func (r *OpenedxReconciler) ingress(name string, cr *cachev1.Openedx) *extv1beta1.Ingress {
 	ingress := newIngress(name, cr)
 
+	lmsName := getOpenedxLmsUrlName(cr)
+	cmsName := getOpenedxCmsUrlName(cr)
+
 	// Add rules
 	ingress.Spec.Rules = []extv1beta1.IngressRule{
 		{
-			Host: "www.lms-openedx.apps.demo.coreostrain.me",
+			Host: "www." + lmsName + "-openedx.apps.demo.coreostrain.me",
 			IngressRuleValue: extv1beta1.IngressRuleValue{
 				HTTP: &extv1beta1.HTTPIngressRuleValue{
 					Paths: []extv1beta1.HTTPIngressPath{
@@ -43,7 +46,7 @@ func (r *OpenedxReconciler) ingress(name string, cr *cachev1.Openedx) *extv1beta
 			},
 		},
 		{
-			Host: "preview.www.lms-openedx.apps.demo.coreostrain.me",
+			Host: "preview.www." + lmsName + "-openedx.apps.demo.coreostrain.me",
 			IngressRuleValue: extv1beta1.IngressRuleValue{
 				HTTP: &extv1beta1.HTTPIngressRuleValue{
 					Paths: []extv1beta1.HTTPIngressPath{
@@ -58,7 +61,7 @@ func (r *OpenedxReconciler) ingress(name string, cr *cachev1.Openedx) *extv1beta
 			},
 		},
 		{
-			Host: "studio.www.lms-openedx.apps.demo.coreostrain.me",
+			Host: cmsName + ".www." + lmsName + "-openedx.apps.demo.coreostrain.me",
 			IngressRuleValue: extv1beta1.IngressRuleValue{
 				HTTP: &extv1beta1.HTTPIngressRuleValue{
 					Paths: []extv1beta1.HTTPIngressPath{

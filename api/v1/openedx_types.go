@@ -28,7 +28,10 @@ type OpenedxSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	Size int32 `json:"size"`
+	Size           int32  `json:"size"`
+	LmsSiteName    string `json:"lmsSiteName"`
+	StudioSiteName string `json:"studioSiteName"`
+	Title          string `json:"title"`
 }
 
 // OpenedxStatus defines the observed state of Openedx

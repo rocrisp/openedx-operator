@@ -36,11 +36,20 @@ spec:
         spec:
           description: OpenedxSpec defines the desired state of Openedx
           properties:
+            lmsSiteName:
+              type: string
             size:
               format: int32
               type: integer
+            studioSiteName:
+              type: string
+            title:
+              type: string
           required:
+          - lmsSiteName
           - size
+          - studioSiteName
+          - title
           type: object
         status:
           description: OpenedxStatus defines the observed state of Openedx
