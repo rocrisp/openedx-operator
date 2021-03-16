@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const cmsworkerImage = "docker.io/overhangio/openedx:11.2.1"
+const cmsworkerImage = "docker.io/overhangio/openedx:11.2.3"
 const cmsworkerPort = 8000
 
 func cmsworkerDeploymentName(cr *cachev1.Openedx) string {

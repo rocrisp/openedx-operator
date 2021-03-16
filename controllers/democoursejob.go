@@ -11,36 +11,51 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const lmsJobPort = 8000
+const demoJobPort = 8000
 
-func lmsJobName(instance *cachev1.Openedx) string {
-	return instance.Name + "-lmsjob"
+func demoJobName(instance *cachev1.Openedx) string {
+	return instance.Name + "-demojob"
+}
+
+func getDemoContainerEnv(cr *cachev1.Openedx) []corev1.EnvVar {
+	env := make([]corev1.EnvVar, 0)
+
+	env = append(env, corev1.EnvVar{
+		Name:  "SERVICE_VARIANT",
+		Value: "cms",
+	})
+	return env
 }
 
 // newJob returns a new Job instance.
-func newLmsJob(instance *cachev1.Openedx) *batchv1.Job {
-	labels := labels(instance, "lmsjob")
+func newDemoJob(instance *cachev1.Openedx) *batchv1.Job {
+	labels := labels(instance, "cmsjob")
 	return &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      lmsJobName(instance),
+			Name:      demoJobName(instance),
 			Namespace: instance.Namespace,
 			Labels:    labels,
 		},
 	}
 }
 
-func newLmsPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
+func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 	pod := corev1.PodSpec{}
 
 	pod.Containers = []corev1.Container{{
 		Args: []string{
+			"git clone https://github.com/edx/edx-demo-course --branch open-release/koa.2 --depth 1 ../edx-demo-course;",
 			"./manage.py",
-			"lms",
-			"migrate",
+			"cms",
+			"import ../data ../edx-demo-course;",
+			"./manage.py",
+			"cms",
+			"reindex_course --all --setup",
 		},
+		Env:             getDemoContainerEnv(cr),
 		Image:           "docker.io/overhangio/openedx:11.2.3",
 		ImagePullPolicy: corev1.PullAlways,
-		Name:            "lms",
+		Name:            "cms",
 		VolumeMounts: []corev1.VolumeMount{
 			{
 				Name:      "settings-lms",
@@ -92,38 +107,38 @@ func newLmsPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 	return pod
 }
 
-func newLmsPodTemplateSpec(cr *cachev1.Openedx) corev1.PodTemplateSpec {
+func newDemoPodTemplateSpec(cr *cachev1.Openedx) corev1.PodTemplateSpec {
 	labels := labels(cr, "job")
 
 	return corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      lmsJobName(cr),
+			Name:      demoJobName(cr),
 			Namespace: cr.Namespace,
 			Labels:    labels,
 		},
-		Spec: newLmsPodSpec(cr),
+		Spec: newDemoPodSpec(cr),
 	}
 }
 
-func (r *OpenedxReconciler) lmsJob(instance *cachev1.Openedx) *batchv1.Job {
-	job := newLmsJob(instance)
-	job.Spec.Template = newLmsPodTemplateSpec(instance)
+func (r *OpenedxReconciler) demoJob(instance *cachev1.Openedx) *batchv1.Job {
+	job := newDemoJob(instance)
+	job.Spec.Template = newDemoPodTemplateSpec(instance)
 
 	controllerutil.SetControllerReference(instance, job, r.Scheme)
 	return job
 }
 
-func (r *OpenedxReconciler) isLmsJobDone(instance *cachev1.Openedx) bool {
+func (r *OpenedxReconciler) isDemoJobDone(instance *cachev1.Openedx) bool {
 
 	job := &batchv1.Job{}
 
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
-		Name:      lmsJobName(instance),
+		Name:      demoJobName(instance),
 		Namespace: instance.Namespace,
 	}, job)
 
 	if err != nil {
-		log.Error(err, "lmsjob not found")
+		log.Error(err, "demojob not found")
 		return false
 	}
 

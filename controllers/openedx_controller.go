@@ -423,6 +423,23 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	//== Demo Job ========
+	result, err = r.ensureJob(req, openedx, r.demoJob(openedx))
+	if result != nil {
+		return *result, err
+	}
+
+	demojobComplete := r.isDemoJobDone(openedx)
+
+	if !demojobComplete {
+		// If demoJob isn't complete, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(15)
+
+		r.Log.Info(fmt.Sprintf("Demo Job isn't Complete, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
+	}
+
 	// == Finish ==========
 	// Everything went fine, don't requeue
 	return ctrl.Result{}, nil

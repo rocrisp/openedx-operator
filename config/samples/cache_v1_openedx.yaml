@@ -5,7 +5,7 @@ metadata:
 spec:
   # Add fields here
   size: 1
-  lmsSiteName: "notcool"
+  lmsSiteName: "reallycool"
   studioSiteName: "mystudio"
   title: "Best Operator"
 

@@ -14,7 +14,7 @@ import (
 )
 
 const forumPort = 4567
-const forumImage = "docker.io/overhangio/openedx-forum:11.2.1"
+const forumImage = "docker.io/overhangio/openedx-forum:11.2.3"
 
 func forumDeploymentName(instance *cachev1.Openedx) string {
 	return instance.Name + "-forum"

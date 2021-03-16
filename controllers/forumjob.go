@@ -86,7 +86,7 @@ func newPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 			"bundle exec rake search:rebuild_index",
 		},
 		Env:             getArgoExportContainerEnv(cr),
-		Image:           "docker.io/overhangio/openedx-forum:11.2.1",
+		Image:           "docker.io/overhangio/openedx-forum:11.2.3",
 		ImagePullPolicy: corev1.PullAlways,
 		Name:            "forum",
 	}}
