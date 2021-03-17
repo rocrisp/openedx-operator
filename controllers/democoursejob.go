@@ -42,15 +42,34 @@ func newDemoJob(instance *cachev1.Openedx) *batchv1.Job {
 func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 	pod := corev1.PodSpec{}
 
+	pod.InitContainers = []corev1.Container{
+		{
+			Args: []string{
+				"git clone https://github.com/edx/edx-demo-course --branch open-release/koa.2 --depth 1 ../edx-demo-course",
+			},
+			Image:           "docker.io/overhangio/openedx:11.2.3",
+			ImagePullPolicy: corev1.PullAlways,
+			Name:            "init-democourse",
+			VolumeMounts: []corev1.VolumeMount{
+				{
+					Name:      "settings-lms",
+					MountPath: "/openedx/edx-platform/lms/envs/tutor/",
+				},
+				{
+					Name:      "settings-cms",
+					MountPath: "/openedx/edx-platform/cms/envs/tutor/",
+				},
+				{
+					Name:      "config",
+					MountPath: "/openedx/config",
+				},
+			},
+		},
+	}
+
 	pod.Containers = []corev1.Container{{
 		Args: []string{
-			"git clone https://github.com/edx/edx-demo-course --branch open-release/koa.2 --depth 1 ../edx-demo-course;",
-			"./manage.py",
-			"cms",
-			"import ../data ../edx-demo-course;",
-			"./manage.py",
-			"cms",
-			"reindex_course --all --setup",
+			"./manage.py cms reindex_course --all --setup",
 		},
 		Env:             getDemoContainerEnv(cr),
 		Image:           "docker.io/overhangio/openedx:11.2.3",
@@ -71,6 +90,7 @@ func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 			},
 		},
 	}}
+
 	pod.RestartPolicy = corev1.RestartPolicyOnFailure
 
 	pod.Volumes = []corev1.Volume{

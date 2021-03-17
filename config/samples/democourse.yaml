@@ -28,6 +28,7 @@ spec:
           # Re-index courses
 
           ./manage.py cms reindex_course --all --setup'
+          
         env:
         - name: SERVICE_VARIANT
           value: cms
