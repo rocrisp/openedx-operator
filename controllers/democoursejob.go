@@ -42,14 +42,45 @@ func newDemoJob(instance *cachev1.Openedx) *batchv1.Job {
 func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 	pod := corev1.PodSpec{}
 
+	cmd := make([]string, 0)
+	cmd = append(cmd, "/bin/sh")
+	cmd = append(cmd, "-c")
+	cmd = append(cmd, "git clone https://github.com/edx/edx-demo-course --branch open-release/koa.2 --depth 1 ../edx-demo-course")
+
 	pod.InitContainers = []corev1.Container{
 		{
-			Args: []string{
-				"git clone https://github.com/edx/edx-demo-course --branch open-release/koa.2 --depth 1 ../edx-demo-course",
-			},
+			Command:         cmd,
+			Env:             getDemoContainerEnv(cr),
 			Image:           "docker.io/overhangio/openedx:11.2.3",
 			ImagePullPolicy: corev1.PullAlways,
-			Name:            "init-democourse",
+			Name:            "init-demo-part1",
+			VolumeMounts: []corev1.VolumeMount{
+				{
+					Name:      "settings-lms",
+					MountPath: "/openedx/edx-platform/lms/envs/tutor/",
+				},
+				{
+					Name:      "settings-cms",
+					MountPath: "/openedx/edx-platform/cms/envs/tutor/",
+				},
+				{
+					Name:      "config",
+					MountPath: "/openedx/config",
+				},
+			},
+		},
+		{
+			Args: []string{
+				"./manage.py",
+				"cms",
+				"import",
+				"../data",
+				"../edx-demo-course",
+			},
+			Env:             getDemoContainerEnv(cr),
+			Image:           "docker.io/overhangio/openedx:11.2.3",
+			ImagePullPolicy: corev1.PullAlways,
+			Name:            "init-demo-part2",
 			VolumeMounts: []corev1.VolumeMount{
 				{
 					Name:      "settings-lms",
@@ -69,7 +100,11 @@ func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 
 	pod.Containers = []corev1.Container{{
 		Args: []string{
-			"./manage.py cms reindex_course --all --setup",
+			"./manage.py",
+			"cms",
+			"reindex_course",
+			"--all",
+			"--setup",
 		},
 		Env:             getDemoContainerEnv(cr),
 		Image:           "docker.io/overhangio/openedx:11.2.3",
