@@ -45,7 +45,7 @@ func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 	cmd := make([]string, 0)
 	cmd = append(cmd, "/bin/sh")
 	cmd = append(cmd, "-c")
-	cmd = append(cmd, "git clone https://github.com/edx/edx-demo-course --branch open-release/koa.2 --depth 1 ../edx-demo-course")
+	cmd = append(cmd, "git clone https://github.com/edx/edx-demo-course --branch open-release/koa.2 --depth 1 ../coursedata")
 
 	pod.InitContainers = []corev1.Container{
 		{
@@ -53,7 +53,7 @@ func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 			Env:             getDemoContainerEnv(cr),
 			Image:           "docker.io/overhangio/openedx:11.2.3",
 			ImagePullPolicy: corev1.PullAlways,
-			Name:            "init-demo-part1",
+			Name:            "init-clone-demo",
 			VolumeMounts: []corev1.VolumeMount{
 				{
 					Name:      "settings-lms",
@@ -66,6 +66,10 @@ func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 				{
 					Name:      "config",
 					MountPath: "/openedx/config",
+				},
+				{
+					Name:      "democourse",
+					MountPath: "/openedx/coursedata",
 				},
 			},
 		},
@@ -75,12 +79,12 @@ func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 				"cms",
 				"import",
 				"../data",
-				"../edx-demo-course",
+				"../coursedata",
 			},
 			Env:             getDemoContainerEnv(cr),
 			Image:           "docker.io/overhangio/openedx:11.2.3",
 			ImagePullPolicy: corev1.PullAlways,
-			Name:            "init-demo-part2",
+			Name:            "init-import-democourse",
 			VolumeMounts: []corev1.VolumeMount{
 				{
 					Name:      "settings-lms",
@@ -93,6 +97,10 @@ func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 				{
 					Name:      "config",
 					MountPath: "/openedx/config",
+				},
+				{
+					Name:      "democourse",
+					MountPath: "/openedx/coursedata",
 				},
 			},
 		},
@@ -109,7 +117,7 @@ func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 		Env:             getDemoContainerEnv(cr),
 		Image:           "docker.io/overhangio/openedx:11.2.3",
 		ImagePullPolicy: corev1.PullAlways,
-		Name:            "cms",
+		Name:            "reindex-course",
 		VolumeMounts: []corev1.VolumeMount{
 			{
 				Name:      "settings-lms",
@@ -155,6 +163,11 @@ func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 						Name: "openedx-config",
 					},
 				},
+			},
+		}, {
+			Name: "democourse",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
 			},
 		},
 	}

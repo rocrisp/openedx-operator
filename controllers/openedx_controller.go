@@ -115,6 +115,11 @@ func (r *OpenedxReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return *result, err
 	}
 
+	result, err = r.ensurePVC(req, openedx, r.persistencevolumeclaim("demo", "1Gi", openedx))
+	if result != nil {
+		return *result, err
+	}
+
 	// == ConfigMap ========
 
 	result, err = r.ensureConfigMap(req, openedx, r.openedxConfig(openedx))
