@@ -24,6 +24,7 @@ func getDemoContainerEnv(cr *cachev1.Openedx) []corev1.EnvVar {
 		Name:  "SERVICE_VARIANT",
 		Value: "cms",
 	})
+
 	return env
 }
 
@@ -53,7 +54,7 @@ func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 			Env:             getDemoContainerEnv(cr),
 			Image:           "docker.io/overhangio/openedx:11.2.3",
 			ImagePullPolicy: corev1.PullAlways,
-			Name:            "init-clone-demo",
+			Name:            "init-clone-democourse",
 			VolumeMounts: []corev1.VolumeMount{
 				{
 					Name:      "settings-lms",
@@ -110,7 +111,7 @@ func newDemoPodSpec(cr *cachev1.Openedx) corev1.PodSpec {
 		Args: []string{
 			"./manage.py",
 			"cms",
-			"reindex_course",
+			"reindex_democourse",
 			"--all",
 			"--setup",
 		},
