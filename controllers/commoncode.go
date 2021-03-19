@@ -321,7 +321,7 @@ func getOpenedxCmsUrlName(cr *cachev1.Openedx) string {
 func getOpenedxTitle(cr *cachev1.Openedx) string {
 	title := common.OpenedxDefaultTitle
 	if len(cr.Spec.Title) > 0 {
-		title = cr.Spec.StudioSiteName
+		title = cr.Spec.Title
 	}
 	return title
 }
